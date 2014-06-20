@@ -1,4 +1,4 @@
-package no.nordicsemi.dependecyinjection;
+package no.nordicsemi;
 
 import android.content.Context;
 
