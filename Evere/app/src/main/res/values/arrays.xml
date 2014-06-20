@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="locationPuckNames">
+        <item>Office</item>
+        <item>Kitchen</item>
+    </string-array>
+</resources>

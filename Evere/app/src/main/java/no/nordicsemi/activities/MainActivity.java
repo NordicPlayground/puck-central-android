@@ -1,5 +1,7 @@
 package no.nordicsemi.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +35,27 @@ public class MainActivity extends Activity {
         adapter = new LocationPuckAdapter(this, new LocationPuckManager(this)
                 .select());
         lvLocationPucks.setAdapter(adapter);
+
+        // Called for debug purposes. Should be moved to iBeacon location entered callback.
+        locationPuckDiscovered();
+    }
+
+    public void locationPuckDiscovered() {
+        final String[] names = getResources().getStringArray(R.array.locationPuckNames);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.puck_discovered_dialog_title))
+                .setSingleChoiceItems(names,0, null)
+                .setPositiveButton(getString(R.string.accept), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        int index = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                        adapter.create(new LocationPuck(names[index]));
+                    }
+                })
+                .setNegativeButton(getString(R.string.reject), null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
