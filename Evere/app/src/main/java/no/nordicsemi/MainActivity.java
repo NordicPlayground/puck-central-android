@@ -22,6 +22,7 @@ public class MainActivity extends org.droidparts.activity.Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         tvHelloWorld.setText("DroidParts fully operational!");
     }
 
