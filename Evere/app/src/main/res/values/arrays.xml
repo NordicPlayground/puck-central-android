@@ -4,4 +4,13 @@
         <item>Office</item>
         <item>Kitchen</item>
     </string-array>
+    <string-array name="kitchenActuators">
+        <item>Starts playing smooth jazz</item>
+        <item>Sets phone volume on</item>
+        <item>Sends text-message to spouse</item>
+    </string-array>
+    <string-array name="officeActuators">
+        <item>Set phone to silent</item>
+        <item>Update status wall</item>
+    </string-array>
 </resources>
