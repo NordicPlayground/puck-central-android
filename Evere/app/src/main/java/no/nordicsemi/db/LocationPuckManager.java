@@ -1,7 +1,6 @@
 package no.nordicsemi.db;
 
 import android.content.Context;
-import android.location.Location;
 
 import org.droidparts.persist.sql.EntityManager;
 
