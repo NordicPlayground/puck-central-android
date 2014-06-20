@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 
 import org.droidparts.persist.sql.AbstractDBOpenHelper;
 
+import no.nordicsemi.models.LocationPuck;
+
 public class DBOpenHelper extends AbstractDBOpenHelper {
 
     private static final String DB_FILE = "Evere.sql";
@@ -16,6 +18,7 @@ public class DBOpenHelper extends AbstractDBOpenHelper {
 
     @Override
     protected void onCreateTables(SQLiteDatabase sqLiteDatabase) {
+        createTables(sqLiteDatabase, LocationPuck.class);
     }
 
     @Override
