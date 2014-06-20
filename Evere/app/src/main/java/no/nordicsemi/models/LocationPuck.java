@@ -14,7 +14,13 @@ public class LocationPuck extends Entity {
         return mName;
     }
 
+    public LocationPuck() {}
+
+    public LocationPuck(String name) {
+        this.mName = name;
+    }
+
     public void setName(String name) {
-        this.mName = mName;
+        this.mName = name;
     }
 }
