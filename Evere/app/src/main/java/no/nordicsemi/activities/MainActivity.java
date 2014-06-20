@@ -8,10 +8,9 @@ import android.widget.ListView;
 import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectView;
 
-import java.util.ArrayList;
-
 import no.nordicsemi.R;
 import no.nordicsemi.adapters.LocationPuckAdapter;
+import no.nordicsemi.db.LocationPuckManager;
 import no.nordicsemi.models.LocationPuck;
 
 
@@ -19,6 +18,7 @@ public class MainActivity extends Activity {
 
     @InjectView
     ListView lvLocationPucks;
+    private LocationPuckAdapter adapter;
 
     @Override
     public void onPreInject() {
@@ -29,12 +29,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ArrayList<LocationPuck> locationPucks = new ArrayList<>();
-        locationPucks.add(new LocationPuck("Citchen"));
-        locationPucks.add(new LocationPuck("Meeting Room"));
 
-        LocationPuckAdapter adapter = new LocationPuckAdapter(this,
-                android.R.layout.simple_list_item_1, locationPucks);
+        adapter = new LocationPuckAdapter(this, new LocationPuckManager(this)
+                .select());
         lvLocationPucks.setAdapter(adapter);
     }
 
