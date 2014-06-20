@@ -1,17 +1,24 @@
-package no.nordicsemi;
+package no.nordicsemi.activities;
 
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.widget.ListView;
 
+import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectView;
 
+import java.util.ArrayList;
 
-public class MainActivity extends org.droidparts.activity.Activity {
+import no.nordicsemi.R;
+import no.nordicsemi.adapters.LocationPuckAdapter;
+import no.nordicsemi.models.LocationPuck;
+
+
+public class MainActivity extends Activity {
 
     @InjectView
-    TextView tvHelloWorld;
+    ListView lvLocationPucks;
 
     @Override
     public void onPreInject() {
@@ -22,8 +29,13 @@ public class MainActivity extends org.droidparts.activity.Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ArrayList<LocationPuck> locationPucks = new ArrayList<>();
+        locationPucks.add(new LocationPuck("Citchen"));
+        locationPucks.add(new LocationPuck("Meeting Room"));
 
-        tvHelloWorld.setText("DroidParts fully operational!");
+        LocationPuckAdapter adapter = new LocationPuckAdapter(this,
+                android.R.layout.simple_list_item_1, locationPucks);
+        lvLocationPucks.setAdapter(adapter);
     }
 
     @Override
