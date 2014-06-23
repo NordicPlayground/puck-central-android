@@ -1,6 +1,5 @@
 package no.nordicsemi.actuators;
 
-import android.content.Context;
 import android.media.AudioManager;
 
 import org.droidparts.annotation.inject.InjectSystemService;
@@ -11,10 +10,6 @@ public class RingerActuator extends Actuator {
 
     @InjectSystemService
     AudioManager mAudioManager;
-
-    public RingerActuator(Context context) {
-        super(context);
-    }
 
     @Override
     public void actuate(JSONObject arguments) throws JSONException {

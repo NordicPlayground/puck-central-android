@@ -15,12 +15,14 @@ public class DependencyProvider extends AbstractDependencyProvider{
     private final DBOpenHelper mDBOpenHelper;
     private final IBeaconManager mIBeaconManager;
     private final RESTClient mRESTClient;
+    private final Context mContext;
 
     public DependencyProvider(Context ctx) {
         super(ctx);
         mDBOpenHelper = new DBOpenHelper(ctx);
         mIBeaconManager = IBeaconManager.getInstanceForApplication(ctx);
         mRESTClient = new RESTClient(ctx);
+        mContext = ctx;
     }
 
     @Override
@@ -30,5 +32,9 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public RESTClient getRESTClient() {
         return mRESTClient;
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 }

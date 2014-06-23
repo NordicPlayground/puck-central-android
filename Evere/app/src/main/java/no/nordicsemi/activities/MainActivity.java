@@ -160,8 +160,8 @@ public class MainActivity extends Activity implements IBeaconConsumer {
             public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, final Region region) {
                 String regionName = region.getUniqueId();
 
-                Actuator httpActuator = new HttpActuator(MainActivity.this);
-                Actuator ringerActuator = new RingerActuator(MainActivity.this);
+                Actuator httpActuator = new HttpActuator();
+                Actuator ringerActuator = new RingerActuator();
                 for(IBeacon iBeacon : iBeacons) {
                     switch(regionName) {
                         case "office":

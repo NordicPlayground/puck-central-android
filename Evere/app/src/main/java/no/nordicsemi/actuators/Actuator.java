@@ -3,13 +3,17 @@ package no.nordicsemi.actuators;
 import android.content.Context;
 
 import org.droidparts.Injector;
+import org.droidparts.annotation.inject.InjectDependency;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class Actuator {
 
-    public Actuator(Context context) {
-        Injector.inject(context, this);
+    @InjectDependency
+    Context mContext;
+
+    public Actuator() {
+        Injector.inject(mContext, this);
     }
 
     abstract void actuate(JSONObject arguments) throws JSONException;
