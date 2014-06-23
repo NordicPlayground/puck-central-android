@@ -34,3 +34,6 @@ build/.gradle
 /.idea/workspace.xml
 .DS_Store
 /build
+
+# Licence file for ProximityKit
+ProximityKit.properties

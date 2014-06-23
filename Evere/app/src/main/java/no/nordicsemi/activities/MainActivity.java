@@ -2,25 +2,40 @@ package no.nordicsemi.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.telephony.gsm.SmsManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.radiusnetworks.ibeacon.IBeacon;
+import com.radiusnetworks.ibeacon.IBeaconConsumer;
+import com.radiusnetworks.ibeacon.IBeaconManager;
+import com.radiusnetworks.ibeacon.RangeNotifier;
+import com.radiusnetworks.ibeacon.Region;
 
 import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectView;
+import org.json.JSONException;
+
+import java.util.Collection;
 
 import no.nordicsemi.R;
+import no.nordicsemi.actuators.RingerActuator;
 import no.nordicsemi.adapters.LocationPuckAdapter;
 import no.nordicsemi.db.LocationPuckManager;
 import no.nordicsemi.models.LocationPuck;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements IBeaconConsumer {
 
     @InjectView
     ListView lvLocationPucks;
     private LocationPuckAdapter adapter;
+    private IBeaconManager mIBeaconManager;
 
     @Override
     public void onPreInject() {
@@ -32,6 +47,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mIBeaconManager = IBeaconManager.getInstanceForApplication(this);
+        mIBeaconManager.bind(this);
         adapter = new LocationPuckAdapter(this, new LocationPuckManager(this)
                 .select());
         lvLocationPucks.setAdapter(adapter);
@@ -75,5 +92,71 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onIBeaconServiceConnect() {
+        mIBeaconManager.setRangeNotifier(new RangeNotifier() {
+            boolean hasEnteredOffice = false;
+            boolean hasEnteredKitchen = false;
+
+            @Override
+            public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
+                String regionName = region.getUniqueId();
+                for(IBeacon iBeacon : iBeacons) {
+                    switch(regionName) {
+                        case "office":
+                            if(iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
+                                if (hasEnteredOffice || hasEnteredKitchen) {
+                                    return;
+                                }
+
+                                hasEnteredOffice = true;
+                                Toast.makeText(MainActivity.this, "We entered office", Toast.LENGTH_SHORT).show();
+
+                                try {
+                                    new RingerActuator(MainActivity.this).actuate("{\"mode\": " + AudioManager.RINGER_MODE_VIBRATE + "}");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
+                                hasEnteredOffice = false;
+                            }
+                            break;
+                        case "kitchen":
+                            if (iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
+                                if (hasEnteredKitchen || hasEnteredOffice) {
+                                    return;
+                                }
+
+                                hasEnteredKitchen = true;
+                                Toast.makeText(MainActivity.this, "We entered kitchen", Toast.LENGTH_SHORT).show();
+
+                                try {
+                                    new RingerActuator(MainActivity.this).actuate("{\"mode\":  " + AudioManager.RINGER_MODE_NORMAL + "}");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                SmsManager smsManager = SmsManager.getDefault();
+                                smsManager.sendTextMessage("48272582", null, "Sup babe, I'm in the kitchen.", null, null);
+                            } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
+                                hasEnteredKitchen = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        });
+
+        try {
+            mIBeaconManager.startRangingBeaconsInRegion(new Region("office",
+                    "E20A39F473F54BC4A12F17D1AD07A961", 0x1337, 0x0F1C));
+            mIBeaconManager.startRangingBeaconsInRegion(new Region("kitchen",
+                    "E20A39F473F54BC4A12F17D1AD07A961", 0x1337, 0xC175));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 }

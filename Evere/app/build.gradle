@@ -22,9 +22,23 @@ android {
     }
     productFlavors {
     }
+
+    sourceSets {
+        main {
+            resources.srcDirs = ['src/main/java']
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'org.droidparts:droidparts:2.0.5'
+    compile 'com.radiusnetworks:AndroidProximityLibrary:1.1.4@aar'
 }

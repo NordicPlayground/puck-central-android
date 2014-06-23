@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="no.nordicsemi" >
 
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -17,9 +19,12 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".bluetooth.LocationRangeMonitorService" />
+
         <meta-data
             android:name="droidparts_dependency_provider"
             android:value=".DependencyProvider" />
+
     </application>
 
 </manifest>
