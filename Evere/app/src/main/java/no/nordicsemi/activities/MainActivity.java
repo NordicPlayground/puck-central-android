@@ -29,6 +29,8 @@ import org.json.JSONException;
 import java.util.Collection;
 
 import no.nordicsemi.R;
+import no.nordicsemi.actuators.Actuator;
+import no.nordicsemi.actuators.HttpActuator;
 import no.nordicsemi.actuators.RingerActuator;
 import no.nordicsemi.adapters.LocationPuckAdapter;
 import no.nordicsemi.db.LocationPuckManager;
@@ -82,6 +84,13 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                 return true;
             }
         });
+
+        Actuator actuator = new HttpActuator(this);
+        try {
+            actuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is a megacool cat\"}");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         // Called for debug purposes. Should be moved to iBeacon location entered callback.
         locationPuckDiscovered();
