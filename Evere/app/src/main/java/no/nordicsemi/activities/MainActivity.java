@@ -85,13 +85,6 @@ public class MainActivity extends Activity implements IBeaconConsumer {
             }
         });
 
-        Actuator actuator = new HttpActuator(this);
-        try {
-            actuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is a megacool cat\"}");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
         // Called for debug purposes. Should be moved to iBeacon location entered callback.
         locationPuckDiscovered();
     }
@@ -165,6 +158,9 @@ public class MainActivity extends Activity implements IBeaconConsumer {
             @Override
             public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
                 String regionName = region.getUniqueId();
+
+                Actuator httpActuator = new HttpActuator(MainActivity.this);
+                Actuator ringerActuator = new RingerActuator(MainActivity.this);
                 for(IBeacon iBeacon : iBeacons) {
                     switch(regionName) {
                         case "office":
@@ -177,10 +173,12 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 Toast.makeText(MainActivity.this, "We entered office", Toast.LENGTH_SHORT).show();
 
                                 try {
-                                    new RingerActuator(MainActivity.this).actuate("{\"mode\": " + AudioManager.RINGER_MODE_VIBRATE + "}");
+                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is at the office\"}");
+                                    ringerActuator.actuate("{\"mode\": " + AudioManager.RINGER_MODE_VIBRATE + "}");
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredOffice = false;
                             }
@@ -195,7 +193,8 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 Toast.makeText(MainActivity.this, "We entered kitchen", Toast.LENGTH_SHORT).show();
 
                                 try {
-                                    new RingerActuator(MainActivity.this).actuate("{\"mode\":  " + AudioManager.RINGER_MODE_NORMAL + "}");
+                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is in the kitchen\"}");
+                                    ringerActuator.actuate("{\"mode\":  " + AudioManager.RINGER_MODE_NORMAL + "}");
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
