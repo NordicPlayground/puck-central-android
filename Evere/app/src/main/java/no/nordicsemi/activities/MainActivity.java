@@ -84,16 +84,14 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                 return true;
             }
         });
-
-        // Called for debug purposes. Should be moved to iBeacon location entered callback.
-        locationPuckDiscovered();
     }
 
-    public void locationPuckDiscovered() {
+    public void locationPuckDiscovered(Region region) {
         final String[] names = getResources().getStringArray(R.array.locationPuckNames);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.puck_discovered_dialog_title))
+        builder.setTitle(getString(R.string.puck_discovered_dialog_title) +
+                "With id: " + String.format("%x", region.getMinor()))
                 .setSingleChoiceItems(names,0, null)
                 .setPositiveButton(getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
@@ -155,8 +153,11 @@ public class MainActivity extends Activity implements IBeaconConsumer {
             boolean hasEnteredOffice = false;
             boolean hasEnteredKitchen = false;
 
+            boolean hasMatchedOffice = false;
+            boolean hasMatchedKitchen = false;
+
             @Override
-            public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
+            public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, final Region region) {
                 String regionName = region.getUniqueId();
 
                 Actuator httpActuator = new HttpActuator(MainActivity.this);
@@ -164,7 +165,17 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                 for(IBeacon iBeacon : iBeacons) {
                     switch(regionName) {
                         case "office":
-                            if(iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
+                            if (iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
+                                if (!hasMatchedOffice) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            locationPuckDiscovered(region);
+                                        }
+                                    });
+                                    hasMatchedOffice = true;
+                                }
+                            } else if(iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
                                 if (hasEnteredOffice || hasEnteredKitchen) {
                                     return;
                                 }
@@ -181,10 +192,21 @@ public class MainActivity extends Activity implements IBeaconConsumer {
 
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredOffice = false;
+                                hasMatchedOffice = false;
                             }
                             break;
                         case "kitchen":
-                            if (iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
+                            if (iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
+                                if (!hasMatchedKitchen) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            locationPuckDiscovered(region);
+                                        }
+                                    });
+                                    hasMatchedKitchen = true;
+                                }
+                            } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
                                 if (hasEnteredKitchen || hasEnteredOffice) {
                                     return;
                                 }
@@ -202,6 +224,7 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 smsManager.sendTextMessage("48272582", null, "Hello, I am in the meeting room right now.", null, null);
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredKitchen = false;
+                                hasMatchedKitchen = false;
                             }
                             break;
                         default:
