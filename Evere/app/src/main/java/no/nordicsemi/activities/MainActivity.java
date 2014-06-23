@@ -170,11 +170,11 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 }
 
                                 hasEnteredOffice = true;
-                                Toast.makeText(MainActivity.this, "We entered office", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Entered the desk area", Toast.LENGTH_SHORT).show();
 
                                 try {
-                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is at the office\"}");
-                                    ringerActuator.actuate("{\"mode\": " + AudioManager.RINGER_MODE_VIBRATE + "}");
+                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is by his desk\"}");
+                                    ringerActuator.actuate("{\"mode\": " + AudioManager.RINGER_MODE_NORMAL + "}");
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -190,16 +190,16 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 }
 
                                 hasEnteredKitchen = true;
-                                Toast.makeText(MainActivity.this, "We entered kitchen", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Entered the meeting room", Toast.LENGTH_SHORT).show();
 
                                 try {
-                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is in the kitchen\"}");
-                                    ringerActuator.actuate("{\"mode\":  " + AudioManager.RINGER_MODE_NORMAL + "}");
+                                    httpActuator.actuate("{\"url\": \"http://dev.stianj.com:1337/message\", \"data\": \"message=Sigve is in the meeting room\"}");
+                                    ringerActuator.actuate("{\"mode\":  " + AudioManager.RINGER_MODE_VIBRATE + "}");
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                                 SmsManager smsManager = SmsManager.getDefault();
-                                smsManager.sendTextMessage("48272582", null, "Sup babe, I'm in the kitchen.", null, null);
+                                smsManager.sendTextMessage("48272582", null, "Hello, I am in the meeting room right now.", null, null);
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredKitchen = false;
                             }

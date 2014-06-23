@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="locationPuckNames">
-        <item>Office</item>
-        <item>Kitchen</item>
+        <item>Office desk area</item>
+        <item>Meeting Room</item>
     </string-array>
     <string-array name="kitchenActuators">
-        <item>Starts playing smooth jazz</item>
-        <item>Sets phone volume on</item>
-        <item>Sends text-message to spouse</item>
+        <item>Set phone to silent</item>
+        <item>Sends text-message to co-worker</item>
+        <item>Update status wall</item>
     </string-array>
     <string-array name="officeActuators">
-        <item>Set phone to silent</item>
+        <item>Sets phone volume on</item>
         <item>Update status wall</item>
     </string-array>
 </resources>
