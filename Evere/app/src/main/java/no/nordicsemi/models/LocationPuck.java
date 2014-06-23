@@ -4,51 +4,53 @@ import org.droidparts.annotation.sql.Column;
 import org.droidparts.annotation.sql.Table;
 import org.droidparts.model.Entity;
 
+import no.nordicsemi.db.LocationPuckManager;
+
 @Table
 public class LocationPuck extends Entity {
-    @Column
-    private String name;
+    @Column(name = LocationPuckManager.COLUMN_NAME)
+    private String mName;
 
-    @Column
-    private int minor;
+    @Column(name = LocationPuckManager.COLUMN_MINOR)
+    private int mMinor;
 
-    @Column
-    private int major;
+    @Column(name = LocationPuckManager.COLUMN_MAJOR)
+    private int mMajor;
 
-    @Column
-    private String proximityUUID;
+    @Column(name = LocationPuckManager.COLUMN_PROXIMITY_UUID)
+    private String mProximityUUID;
 
     public void setName(String name) {
-        this.name = name;
+        this.mName = name;
     }
 
     public String getName() {
-        return name;
+        return mName;
     }
 
     public int getMinor() {
-        return minor;
+        return mMinor;
     }
 
     public int getMajor() {
-        return major;
+        return mMajor;
     }
 
     public String getProximityUUID() {
-        return proximityUUID;
+        return mProximityUUID;
     }
 
     public LocationPuck() {}
 
     public LocationPuck(String name, int minor, int major, String proximityUUID) {
-        this.name = name;
-        this.minor = minor;
-        this.major = major;
-        this.proximityUUID = proximityUUID;
+        this.mName = name;
+        this.mMinor = minor;
+        this.mMajor = major;
+        this.mProximityUUID = proximityUUID;
     }
 
     public String getFormattedUUID() {
-        return String.format("%s - %s - %s", proximityUUID, Integer.toHexString(major),
-                Integer.toHexString(minor));
+        return String.format("%s - %s - %s", mProximityUUID, Integer.toHexString(mMajor),
+                Integer.toHexString(mMinor));
     }
 }
