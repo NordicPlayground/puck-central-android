@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
-import org.droidparts.adapter.holder.Text1Holder;
+import org.droidparts.adapter.holder.Text2Holder;
 import org.droidparts.persist.sql.stmt.Select;
 
 import no.nordicsemi.db.LocationPuckManager;
@@ -20,15 +20,16 @@ public class LocationPuckAdapter extends EntityCursorAdapter<LocationPuck> {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View v = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
-        Text1Holder holder = new Text1Holder(v);
+        View v = getLayoutInflater().inflate(android.R.layout.simple_list_item_2, null);
+        Text2Holder holder = new Text2Holder(v);
         v.setTag(holder);
         return v;
     }
 
     @Override
     public void bindView(Context context, View view, LocationPuck locationPuck) {
-        Text1Holder holder = (Text1Holder) view.getTag();
+        Text2Holder holder = (Text2Holder) view.getTag();
         holder.text1.setText(locationPuck.getName());
+        holder.text2.setText(locationPuck.getFormattedUUID());
     }
 }

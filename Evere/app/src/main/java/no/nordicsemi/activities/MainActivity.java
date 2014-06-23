@@ -27,6 +27,7 @@ import org.droidparts.model.Entity;
 import org.json.JSONException;
 
 import java.util.Collection;
+import java.util.Random;
 
 import no.nordicsemi.R;
 import no.nordicsemi.actuators.Actuator;
@@ -86,29 +87,44 @@ public class MainActivity extends Activity implements IBeaconConsumer {
         });
     }
 
-    public void locationPuckDiscovered(Region region) {
-        final String[] names = getResources().getStringArray(R.array.locationPuckNames);
+    public void locationPuckDiscovered(final IBeacon iBeacon) {
+        final LocationPuck newLocationPuck = new LocationPuck(null,
+                iBeacon.getMinor(),
+                iBeacon.getMajor(),
+                iBeacon.getProximityUuid());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.puck_discovered_dialog_title) +
-                "With id: " + String.format("%x", region.getMinor()))
-                .setSingleChoiceItems(names,0, null)
+        if (new LocationPuckManager(this).locationPuckExists(newLocationPuck)) {
+            Toast.makeText(MainActivity.this,
+                    getString(R.string.location_puck_already_paired),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final View view = getLayoutInflater().inflate(R.layout.dialog_location_puck_add, null);
+        ((TextView) view.findViewById(R.id.tvLocationPuckIdentifier)).setText(newLocationPuck.getFormattedUUID());
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setView(view)
+                .setTitle(getString(R.string.puck_discovered_dialog_title))
                 .setPositiveButton(getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        int index = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                        adapter.create(new LocationPuck(names[index]));
+                        String locationPuckName = ((TextView) view.findViewById(R.id
+                                .etLocationPuckName)).getText().toString();
+
+                        newLocationPuck.setName(locationPuckName);
+                        adapter.create(newLocationPuck);
                     }
                 })
                 .setNegativeButton(getString(R.string.reject), null);
+
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
     public void showLocationPuckActuatorsDialog(LocationPuck locationPuck) {
-        String[] names = getResources().getStringArray(R.array.locationPuckNames);
         String[] puckActuators = getResources().getStringArray(
-                locationPuck.getName().equals(names[0]) ?
+                new Random().nextFloat() > 0.5 ?
                         R.array.officeActuators : R.array.kitchenActuators);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -153,28 +169,22 @@ public class MainActivity extends Activity implements IBeaconConsumer {
             boolean hasEnteredOffice = false;
             boolean hasEnteredKitchen = false;
 
-            boolean hasMatchedOffice = false;
-            boolean hasMatchedKitchen = false;
-
             @Override
             public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, final Region region) {
                 String regionName = region.getUniqueId();
 
                 Actuator httpActuator = new HttpActuator();
                 Actuator ringerActuator = new RingerActuator();
-                for(IBeacon iBeacon : iBeacons) {
+                for (final IBeacon iBeacon : iBeacons) {
                     switch(regionName) {
                         case "office":
                             if (iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
-                                if (!hasMatchedOffice) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            locationPuckDiscovered(region);
-                                        }
-                                    });
-                                    hasMatchedOffice = true;
-                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        locationPuckDiscovered(iBeacon);
+                                    }
+                                });
                             } else if(iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
                                 if (hasEnteredOffice || hasEnteredKitchen) {
                                     return;
@@ -192,20 +202,16 @@ public class MainActivity extends Activity implements IBeaconConsumer {
 
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredOffice = false;
-                                hasMatchedOffice = false;
                             }
                             break;
                         case "kitchen":
                             if (iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
-                                if (!hasMatchedKitchen) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            locationPuckDiscovered(region);
-                                        }
-                                    });
-                                    hasMatchedKitchen = true;
-                                }
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        locationPuckDiscovered(iBeacon);
+                                    }
+                                });
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
                                 if (hasEnteredKitchen || hasEnteredOffice) {
                                     return;
@@ -224,7 +230,6 @@ public class MainActivity extends Activity implements IBeaconConsumer {
                                 smsManager.sendTextMessage("48272582", null, "Hello, I am in the meeting room right now.", null, null);
                             } else if (iBeacon.getProximity() == IBeacon.PROXIMITY_FAR) {
                                 hasEnteredKitchen = false;
-                                hasMatchedKitchen = false;
                             }
                             break;
                         default:

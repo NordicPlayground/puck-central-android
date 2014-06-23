@@ -10,7 +10,7 @@ import no.nordicsemi.models.LocationPuck;
 public class DBOpenHelper extends AbstractDBOpenHelper {
 
     private static final String DB_FILE = "Evere.sql";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     public DBOpenHelper(Context ctx) {
         super(ctx, DB_FILE, DB_VERSION);

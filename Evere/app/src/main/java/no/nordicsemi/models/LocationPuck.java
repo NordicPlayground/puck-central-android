@@ -6,21 +6,49 @@ import org.droidparts.model.Entity;
 
 @Table
 public class LocationPuck extends Entity {
+    @Column
+    private String name;
 
     @Column
-    private String mName;
+    private int minor;
+
+    @Column
+    private int major;
+
+    @Column
+    private String proximityUUID;
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getName() {
-        return mName;
+        return name;
+    }
+
+    public int getMinor() {
+        return minor;
+    }
+
+    public int getMajor() {
+        return major;
+    }
+
+    public String getProximityUUID() {
+        return proximityUUID;
     }
 
     public LocationPuck() {}
 
-    public LocationPuck(String name) {
-        this.mName = name;
+    public LocationPuck(String name, int minor, int major, String proximityUUID) {
+        this.name = name;
+        this.minor = minor;
+        this.major = major;
+        this.proximityUUID = proximityUUID;
     }
 
-    public void setName(String name) {
-        this.mName = name;
+    public String getFormattedUUID() {
+        return String.format("%s - %s - %s", proximityUUID, Integer.toHexString(major),
+                Integer.toHexString(minor));
     }
 }
