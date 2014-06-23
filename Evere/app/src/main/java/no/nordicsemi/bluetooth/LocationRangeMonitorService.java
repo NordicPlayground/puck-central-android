@@ -69,7 +69,7 @@ public class LocationRangeMonitorService extends Service implements IBeaconConsu
                         Log.i("LocationRangeMonitor", "In near proximity of " + regionName);
                         if(regionName == "office") {
                             try {
-                                new RingerActuator(getApplicationContext()).actuate("{\"mode\": 1}");
+                                new RingerActuator().actuate("{\"mode\": 1}");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }

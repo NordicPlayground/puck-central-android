@@ -12,6 +12,11 @@ public class HttpActuator extends Actuator {
     RESTClient mRestClient;
 
     @Override
+    public int getId() {
+        return 1;
+    }
+
+    @Override
     void actuate(final JSONObject arguments) throws JSONException {
         new SimpleAsyncTask<Void>(mContext, null) {
             @Override

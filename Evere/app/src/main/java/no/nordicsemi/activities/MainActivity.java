@@ -36,6 +36,7 @@ import no.nordicsemi.actuators.RingerActuator;
 import no.nordicsemi.adapters.LocationPuckAdapter;
 import no.nordicsemi.db.LocationPuckManager;
 import no.nordicsemi.models.LocationPuck;
+import no.nordicsemi.triggers.LocationTrigger;
 
 
 public class MainActivity extends Activity implements IBeaconConsumer {

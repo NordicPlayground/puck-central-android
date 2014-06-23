@@ -32,14 +32,14 @@ public class LocationBootstrapNotifier implements BootstrapNotifier {
         switch(regionName) {
             case "office":
                 try {
-                    new RingerActuator(getApplicationContext()).actuate("{\"mode\": 1}");
+                    new RingerActuator().actuate("{\"mode\": 1}");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             break;
             case "kitchen":
                 try {
-                    new RingerActuator(getApplicationContext()).actuate("{\"mode\": 0}");
+                    new RingerActuator().actuate("{\"mode\": 0}");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

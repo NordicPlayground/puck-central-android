@@ -12,6 +12,11 @@ public class RingerActuator extends Actuator {
     AudioManager mAudioManager;
 
     @Override
+    public int getId() {
+        return 2;
+    }
+
+    @Override
     public void actuate(JSONObject arguments) throws JSONException {
         mAudioManager.setRingerMode((Integer) arguments.get("mode"));
     }
