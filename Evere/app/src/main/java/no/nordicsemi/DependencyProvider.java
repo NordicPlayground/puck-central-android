@@ -2,7 +2,7 @@ package no.nordicsemi;
 
 import android.content.Context;
 
-import com.radiusnetworks.ibeacon.IBeaconManager;
+import com.radiusnetworks.proximity.ibeacon.IBeaconManager;
 
 import org.droidparts.AbstractDependencyProvider;
 import org.droidparts.net.http.RESTClient;
@@ -36,5 +36,9 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public Context getContext() {
         return mContext;
+    }
+
+    public IBeaconManager getIBeaconManager() {
+        return mIBeaconManager;
     }
 }
