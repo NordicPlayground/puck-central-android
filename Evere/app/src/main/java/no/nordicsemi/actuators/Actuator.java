@@ -23,7 +23,7 @@ public abstract class Actuator {
     public abstract int getId();
 
     public Actuator() {
-        Injector.inject(mContext, this);
+        Injector.inject(Injector.getApplicationContext(), this);
     }
 
     abstract void actuate(JSONObject arguments) throws JSONException;
