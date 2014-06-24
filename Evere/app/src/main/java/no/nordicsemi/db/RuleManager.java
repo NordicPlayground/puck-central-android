@@ -12,8 +12,8 @@ import no.nordicsemi.triggers.Trigger;
 
 public class RuleManager extends EntityManager<Rule> {
 
-    public RuleManager(Class<Rule> cls, Context ctx) {
-        super(cls, ctx);
+    public RuleManager(Context ctx) {
+        super(Rule.class, ctx);
     }
 
     public ArrayList<Rule> getRulesForTrigger(Trigger trigger) {
