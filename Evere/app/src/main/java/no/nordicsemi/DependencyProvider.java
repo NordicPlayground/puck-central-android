@@ -8,7 +8,10 @@ import org.droidparts.AbstractDependencyProvider;
 import org.droidparts.net.http.RESTClient;
 import org.droidparts.persist.sql.AbstractDBOpenHelper;
 
+import no.nordicsemi.db.ActionManager;
 import no.nordicsemi.db.DBOpenHelper;
+import no.nordicsemi.db.PuckManager;
+import no.nordicsemi.db.RuleManager;
 
 public class DependencyProvider extends AbstractDependencyProvider{
 
@@ -40,5 +43,17 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public IBeaconManager getIBeaconManager() {
         return mIBeaconManager;
+    }
+
+    public ActionManager getActionManager() {
+        return new ActionManager(mContext);
+    }
+
+    public RuleManager getRuleManager() {
+        return new RuleManager(mContext);
+    }
+
+    public PuckManager getPuckManager() {
+        return new PuckManager(mContext);
     }
 }

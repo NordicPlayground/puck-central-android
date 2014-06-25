@@ -6,30 +6,43 @@ import org.droidparts.model.Entity;
 
 import java.util.ArrayList;
 
-import no.nordicsemi.triggers.Trigger;
+import no.nordicsemi.db.DB;
 
 @Table
 public class Rule extends Entity {
 
-    @Column
-    private Class trigger;
+    @Column(name = DB.Column.PUCK, eager = true)
+    private Puck mPuck;
 
-    @Column
-    private ArrayList<Action> actions;
+    @Column(name = DB.Column.TRIGGER)
+    private String mTrigger;
 
-    public Class getTrigger() {
-        return trigger;
+    @Column(name = DB.Column.ACTIONS, eager = true)
+    private ArrayList<Action> mActions;
+
+    public void setPuck(Puck puck) { this.mPuck = puck; }
+
+    public Puck getPuck() { return mPuck; }
+
+    public String getTrigger() {
+        return mTrigger;
     }
 
-    public void setTrigger(Class trigger) {
-        this.trigger = trigger;
+    public void setTrigger(String trigger) {
+        this.mTrigger = trigger;
     }
 
     public ArrayList<Action> getActions() {
-        return actions;
+        return mActions;
     }
 
     public void setActions(ArrayList<Action> actions) {
-        this.actions = actions;
+        this.mActions = actions;
+    }
+
+    public void setAction(Action action) {
+        ArrayList<Action> actions = new ArrayList<>();
+        actions.add(action);
+        mActions = actions;
     }
 }

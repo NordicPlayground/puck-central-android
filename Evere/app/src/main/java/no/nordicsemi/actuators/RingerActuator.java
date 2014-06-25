@@ -12,6 +12,11 @@ public class RingerActuator extends Actuator {
     AudioManager mAudioManager;
 
     @Override
+    public String getDescription() {
+        return "Change phone state";
+    }
+
+    @Override
     public int getId() {
         return 2;
     }

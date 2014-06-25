@@ -7,6 +7,7 @@ import org.droidparts.annotation.inject.InjectDependency;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Actuator {
@@ -20,7 +21,17 @@ public abstract class Actuator {
         mActuators = createActuatorList();
     }
 
+    public abstract String getDescription();
+
     public abstract int getId();
+
+    public static ArrayList<Actuator> getActuators() {
+        return new ArrayList<>(mActuators.values());
+    }
+
+    public static Actuator getActuatorForId(int id) {
+        return mActuators.get(id);
+    }
 
     public Actuator() {
         Injector.inject(Injector.getApplicationContext(), this);
@@ -44,4 +55,5 @@ public abstract class Actuator {
         actuators.put(actuator.getId(), actuator);
         return actuators;
     }
+
 }

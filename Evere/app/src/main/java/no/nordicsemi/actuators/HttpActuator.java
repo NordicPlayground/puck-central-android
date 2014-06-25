@@ -12,6 +12,11 @@ public class HttpActuator extends Actuator {
     RESTClient mRestClient;
 
     @Override
+    public String getDescription() {
+        return "Posts something to adress";
+    }
+
+    @Override
     public int getId() {
         return 1;
     }
