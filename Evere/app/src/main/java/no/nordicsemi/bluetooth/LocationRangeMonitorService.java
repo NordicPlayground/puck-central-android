@@ -17,6 +17,10 @@ import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.util.L;
 
 import java.util.Collection;
+import java.util.HashMap;
+
+import no.nordicsemi.location.LocationManager;
+import no.nordicsemi.models.LocationPuck;
 
 
 public class LocationRangeMonitorService extends Service implements IBeaconConsumer {
@@ -24,16 +28,31 @@ public class LocationRangeMonitorService extends Service implements IBeaconConsu
     @InjectDependency
     IBeaconManager mIBeaconManager;
 
+    @InjectDependency
+    private LocationManager mLocationManager;
+
     @Override
     public void onIBeaconServiceConnect() {
         mIBeaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<IBeacon> iBeacons, Region region) {
+                HashMap<Integer, String> names = new HashMap<>();
+                names.put(IBeacon.PROXIMITY_IMMEDIATE, "IMMEDIATE");
+                names.put(IBeacon.PROXIMITY_NEAR, "NEAR");
+                names.put(IBeacon.PROXIMITY_FAR, "FAR");
+                names.put(IBeacon.PROXIMITY_UNKNOWN, "UNKNOWN");
                 L.i("[" + iBeacons.size() + "] iBeacons:");
                 for(IBeacon iBeacon : iBeacons) {
                     L.i(iBeacon.getProximityUuid() + "-" + iBeacon.getMajor() + "-" + iBeacon.getMinor());
+                    L.i("accuracy: " + iBeacon.getAccuracy());
+                    L.i("proximity: " + names.get(iBeacon.getProximity()));
                 }
+
+                mLocationManager.updateLocation(iBeacons);
+                LocationPuck location = mLocationManager.getCurrentLocation();
+                L.e("Current location: " + location);
             }
+
         });
 
         try {

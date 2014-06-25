@@ -41,4 +41,5 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'org.droidparts:droidparts:2.0.5'
     compile 'com.radiusnetworks:AndroidProximityLibrary:1.1.4@aar'
+    compile 'joda-time:joda-time:2.3'
 }

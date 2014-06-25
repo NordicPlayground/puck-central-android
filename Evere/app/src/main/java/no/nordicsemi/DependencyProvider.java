@@ -12,12 +12,14 @@ import no.nordicsemi.db.ActionManager;
 import no.nordicsemi.db.DBOpenHelper;
 import no.nordicsemi.db.PuckManager;
 import no.nordicsemi.db.RuleManager;
+import no.nordicsemi.location.LocationManager;
 
 public class DependencyProvider extends AbstractDependencyProvider{
 
     private final DBOpenHelper mDBOpenHelper;
     private final IBeaconManager mIBeaconManager;
     private final RESTClient mRESTClient;
+    private final LocationManager mLocationManager;
     private final Context mContext;
 
     public DependencyProvider(Context ctx) {
@@ -25,6 +27,7 @@ public class DependencyProvider extends AbstractDependencyProvider{
         mDBOpenHelper = new DBOpenHelper(ctx);
         mIBeaconManager = IBeaconManager.getInstanceForApplication(ctx);
         mRESTClient = new RESTClient(ctx);
+        mLocationManager = new LocationManager();
         mContext = ctx;
     }
 
@@ -55,5 +58,9 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public PuckManager getPuckManager() {
         return new PuckManager(mContext);
+    }
+
+    public LocationManager getLocationManager() {
+        return mLocationManager;
     }
 }
