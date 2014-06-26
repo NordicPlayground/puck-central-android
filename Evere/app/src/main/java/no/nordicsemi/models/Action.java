@@ -15,6 +15,8 @@ public class Action extends Entity {
     @Column
     private String arguments;
 
+    public Action() {}
+
     public Action(int actuatorId, String arguments) {
         this.actuatorId = actuatorId;
         this.arguments = arguments;

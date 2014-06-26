@@ -24,6 +24,9 @@ public class PuckManager extends EntityManager<Puck> {
     }
 
     public Puck forIBeacon(IBeacon iBeacon) {
+        if (iBeacon == null) {
+            return null;
+        }
         return readFirst(find(iBeacon.getProximityUuid(), iBeacon.getMajor(), iBeacon.getMinor()));
     }
 

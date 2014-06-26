@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.radiusnetworks.ibeacon.IBeacon;
 
 import org.droidparts.activity.Activity;
+import org.droidparts.annotation.bus.ReceiveEvents;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
 
@@ -31,12 +32,16 @@ import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
 import no.nordicsemi.services.GattService;
+import no.nordicsemi.triggers.Trigger;
 
 
 public class MainActivity extends Activity {
 
     @InjectView(id = R.id.lvRules)
     ListView mLvRules;
+
+    @InjectView(id = R.id.tvClosestPuck)
+    TextView mClosestPuck;
 
     @InjectDependency
     private ActionManager mActionManager;
@@ -80,9 +85,21 @@ public class MainActivity extends Activity {
         });
     }
 
-    public void locationPuckDiscovered(final IBeacon iBeacon) {
+    @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
+    public void updateTV(String _, Object toDisplay) {
+        mClosestPuck.setText((String) toDisplay);
+    }
+
+    boolean currentlyAddingZone = false;
+    @ReceiveEvents(name = Trigger.TRIGGER_ZONE_DISCOVERED)
+    public void addDiscoveredZoneModal(String _, final IBeacon iBeacon) {
+        if (currentlyAddingZone) {
+            return;
+        }
+        currentlyAddingZone = true;
+
         if (mPuckManager.forIBeacon(iBeacon) != null) {
-            Toast.makeText(MainActivity.this,
+            Toast.makeText(this,
                     getString(R.string.location_puck_already_paired),
                     Toast.LENGTH_SHORT).show();
             return;
@@ -114,7 +131,13 @@ public class MainActivity extends Activity {
                         mPuckManager.create(newPuck);
                     }
                 })
-                .setNegativeButton(getString(R.string.reject), null);
+                .setNegativeButton(getString(R.string.reject), null)
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        currentlyAddingZone = false;
+                    }
+                });
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -123,7 +146,7 @@ public class MainActivity extends Activity {
     public void selectDeviceDialog() {
         final List<Puck> puckList = mPuckManager.getAll();
         if (puckList.size() == 0) {
-            Toast.makeText(this, getString(R.string.no_pucks_present), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
             return;
         }
 

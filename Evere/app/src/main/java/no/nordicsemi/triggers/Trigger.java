@@ -15,16 +15,18 @@ import no.nordicsemi.models.Rule;
 
 public abstract class Trigger {
 
-    public static final String TRIGGER_PROXIMITY_IMMEDIATE = "trigger_proximity_immediate";
-    public static final String TRIGGER_PROXIMITY_NEAR = "trigger_proximity_near";
-    public static final String TRIGGER_PROXIMITY_FAR = "trigger_proximity_far";
+    public static final String TRIGGER_UPDATE_CLOSEST_PUCK_TV = "trigger_update_closest_puck_tv";
+
+    public static final String TRIGGER_ENTER_ZONE = "trigger_enter_zone";
+    public static final String TRIGGER_LEAVE_ZONE = "trigger_leave_zone";
+    public static final String TRIGGER_ZONE_DISCOVERED = "trigger_zone_discovered";
 
     public static void trigger(Puck puck, String trigger) {
-        L.d("Triggering event for puck " + puck + " and trigger " + trigger);
+        L.i("Triggering event for puck " + puck + " and trigger " + trigger);
 
         ArrayList<Rule> rules = Injector.getDependency(Injector.getApplicationContext(),
                 RuleManager.class).getRulesForPuckAndTrigger(puck, trigger);
-        L.d("With matching rules " + rules);
+        L.i("With matching rules " + rules);
 
         for(Rule rule : rules) {
             for (Action action : rule.getActions()) {

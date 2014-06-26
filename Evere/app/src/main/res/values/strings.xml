@@ -15,9 +15,11 @@
     <string name="location_puck_identifier_legend">UUID - major - minor</string>
     <string name="location_puck_already_paired">Location puck already paired with device</string>
     <string name="action_add_rule">Add rule</string>
-    <string name="no_pucks_present">No pucks present. Add pucks first.</string>
+    <string name="no_pucks_added">No pucks present. Add pucks first.</string>
     <string name="select_puck">Select puck</string>
     <string name="select_trigger">Select trigger</string>
     <string name="select_actuator">Select actuator</string>
+    <string name="no_known_pucks_nearby">No known pucks nearby.</string>
+    <string name="currently_near_puck">Currently near:\n%s.</string>
 
 </resources>

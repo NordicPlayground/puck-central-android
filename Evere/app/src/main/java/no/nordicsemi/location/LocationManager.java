@@ -1,26 +1,36 @@
 package no.nordicsemi.location;
 
+import android.content.Context;
+
 import com.radiusnetworks.ibeacon.IBeacon;
 
 import org.droidparts.Injector;
 import org.droidparts.annotation.inject.InjectDependency;
+import org.droidparts.bus.EventBus;
 import org.joda.time.DateTime;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-import no.nordicsemi.db.LocationPuckManager;
-import no.nordicsemi.models.LocationPuck;
+import no.nordicsemi.R;
+import no.nordicsemi.db.PuckManager;
+import no.nordicsemi.models.Puck;
+import no.nordicsemi.triggers.Trigger;
 
 
 public class LocationManager {
 
     @InjectDependency
-    LocationPuckManager mLocationPuckManager;
+    Context mCtx;
 
-    private LocationPuck location;
+    @InjectDependency
+    PuckManager mPuckManager;
+
+    private Puck mClosestPuck;
     private DateTime mLastChanged;
+
+    private final int THROTTLE = 3;
 
     public LocationManager() {
         mLastChanged = new DateTime();
@@ -28,11 +38,12 @@ public class LocationManager {
 
     public void updateLocation(Collection<IBeacon> iBeacons) {
 
-        if(mLastChanged.plusSeconds(5).isBeforeNow()) {
+        if (mLastChanged.plusSeconds(THROTTLE).isAfterNow()) {
             return;
         }
 
-        if(iBeacons.size() == 0) {
+        // There are few cases where there are exactly 0 iBeacons present,
+        if (iBeacons.size() == 0) {
             setLocation(null);
             return;
         }
@@ -46,14 +57,14 @@ public class LocationManager {
             }
         });
 
-        for(IBeacon iBeacon : iBeaconsArray) {
+        for (IBeacon iBeacon : iBeaconsArray) {
             if(iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
                 setLocation(iBeacon);
                 return;
             }
         }
 
-        for(IBeacon iBeacon : iBeaconsArray) {
+        for (IBeacon iBeacon : iBeaconsArray) {
             if(iBeacon.getProximity() == IBeacon.PROXIMITY_NEAR) {
                 setLocation(iBeacon);
                 return;
@@ -62,21 +73,55 @@ public class LocationManager {
     }
 
     private void setLocation(IBeacon iBeacon) {
-        if(mLocationPuckManager == null) {
+        if (mPuckManager == null) {
             Injector.inject(Injector.getApplicationContext(), this);
         }
+
         mLastChanged = new DateTime();
-        LocationPuck newLocation = mLocationPuckManager.getPuckByUUID(iBeacon.getProximityUuid(), iBeacon.getMajor(), iBeacon.getMinor());
-        if(!newLocation.equals(location)) {
+
+        if (iBeacon == null) {
+            leaveCurrentZone();
             return;
         }
-        location = newLocation;
 
-        /* trigger location enter/leave here */
-
+        Puck newClosestPuck = mPuckManager.forIBeacon(iBeacon);
+        if (newClosestPuck == null) {
+            if (iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
+                EventBus.postEvent(Trigger.TRIGGER_ZONE_DISCOVERED, iBeacon);
+            } else {
+                leaveCurrentZone();
+            }
+        } else if (!newClosestPuck.equals(mClosestPuck)) {
+            leaveCurrentZone();
+            mClosestPuck = newClosestPuck;
+            enterCurrentZone();
+        }
     }
 
-    public LocationPuck getCurrentLocation() {
-        return location;
+    private void leaveCurrentZone() {
+        updateClosestPuckGUI(mCtx.getString(R.string.no_known_pucks_nearby));
+        if (mClosestPuck == null) {
+            return;
+        }
+
+        Trigger.trigger(
+                mClosestPuck,
+                Trigger.TRIGGER_LEAVE_ZONE);
+        mClosestPuck = null;
+    }
+
+    private void enterCurrentZone() {
+        updateClosestPuckGUI(mCtx.getString(R.string.currently_near_puck, mClosestPuck.getName()));
+        Trigger.trigger(
+                mClosestPuck,
+                Trigger.TRIGGER_ENTER_ZONE);
+    }
+
+    public Puck getCurrentLocation() {
+        return mClosestPuck;
+    }
+
+    public void updateClosestPuckGUI(String text) {
+        EventBus.postEvent(Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV, text);
     }
 }

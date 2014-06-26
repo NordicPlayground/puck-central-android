@@ -41,6 +41,30 @@ public class Puck extends Entity {
         return mMajor;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || ((Object) this).getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Puck puck = (Puck) o;
+
+        if (mMajor != puck.mMajor) return false;
+        if (mMinor != puck.mMinor) return false;
+        if (!mProximityUUID.equals(puck.mProximityUUID)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + mMinor;
+        result = 31 * result + mMajor;
+        result = 31 * result + mProximityUUID.hashCode();
+        return result;
+    }
+
     public String getProximityUUID() {
         return mProximityUUID;
     }
@@ -48,6 +72,8 @@ public class Puck extends Entity {
     public ArrayList<String> getServiceUUIDs() {
         return mServiceUUIDs;
     }
+
+    public Puck() {}
 
     public Puck(String name, int minor, int major, String proximityUUID, ArrayList<String>
             serviceUUIDs) {
