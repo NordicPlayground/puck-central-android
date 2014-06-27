@@ -67,6 +67,8 @@ public abstract class Actuator {
         actuators.put(actuator.getId(), actuator);
         actuator = new RingerActuator();
         actuators.put(actuator.getId(), actuator);
+        actuator = new SpotifyActuator();
+        actuators.put(actuator.getId(), actuator);
         return actuators;
     }
 
