@@ -21,5 +21,7 @@
     <string name="select_actuator">Select actuator</string>
     <string name="no_known_pucks_nearby">No known pucks nearby.</string>
     <string name="currently_near_puck">Currently near:\n%s.</string>
+    <string name="dialog_actuator_edittext_1">EditText1</string>
+    <string name="dialog_actuator_edittext_2">EditText2</string>
 
 </resources>

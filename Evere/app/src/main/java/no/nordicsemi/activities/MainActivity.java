@@ -1,8 +1,8 @@
 package no.nordicsemi.activities;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
-import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -204,63 +204,21 @@ public class MainActivity extends Activity {
                             public void onClick(DialogInterface dialog, int which) {
                                 Action action = new Action(
                                         actuators.get(which).getId(),
-                                        null
-                                );
+                                        null);
 
-                                // This mechanism should be made more generic,
-                                // preferably provided by the actuator itself.
-                                switch (which) {
-                                    case 1:
-                                        selectRingerActuatorSettingsDialog(action, rule);
-                                        break;
+                                Dialog actuatorDialog = actuators.get(which)
+                                        .getActuatorDialog(MainActivity.this, action, rule, new Actuator.ActuatorDialogFinishListener() {
+                                            @Override
+                                            public void onActuatorDialogFinish(Action action, Rule rule) {
+                                                mActionManager.create(action);
+                                                mRuleAdapter.create(rule);
+                                            }
+                                        });
 
-                                    default:
-                                        break;
-                                }
+                                actuatorDialog.show();
                             }
                         }
                 )
-                .setNegativeButton(getString(R.string.abort), null);
-
-        builder.create().show();
-    }
-
-    // TODO: Move implementation somewhere else, and make it more generic.
-    public void selectRingerActuatorSettingsDialog(final Action action, final Rule rule) {
-        String[] phoneSettings = new String[] {"Silent", "Vibrate", "Volume"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("Set ringing settings")
-                .setItems(phoneSettings, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                action.setArguments("{\"mode\": " +
-                                        AudioManager.RINGER_MODE_SILENT +
-                                        "}");
-                                break;
-
-                            case 1:
-                                action.setArguments("{\"mode\": " +
-                                        AudioManager.RINGER_MODE_VIBRATE +
-                                        "}");
-                                break;
-
-                            case 2:
-                                action.setArguments("{\"mode\": " +
-                                        AudioManager.RINGER_MODE_NORMAL +
-                                        "}");
-                                break;
-
-                            default:
-                                break;
-                        }
-
-                        mActionManager.create(action);
-                        rule.setAction(action);
-                        mRuleAdapter.create(rule);
-                    }
-                })
                 .setNegativeButton(getString(R.string.abort), null);
 
         builder.create().show();

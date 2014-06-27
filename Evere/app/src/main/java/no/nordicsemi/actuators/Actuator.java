@@ -1,5 +1,6 @@
 package no.nordicsemi.actuators;
 
+import android.app.AlertDialog;
 import android.content.Context;
 
 import org.droidparts.Injector;
@@ -9,6 +10,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import no.nordicsemi.models.Action;
+import no.nordicsemi.models.Rule;
 
 public abstract class Actuator {
 
@@ -29,6 +33,7 @@ public abstract class Actuator {
         return new ArrayList<>(mActuators.values());
     }
 
+
     public static Actuator getActuatorForId(int id) {
         return mActuators.get(id);
     }
@@ -37,14 +42,23 @@ public abstract class Actuator {
         Injector.inject(Injector.getApplicationContext(), this);
     }
 
+
     abstract void actuate(JSONObject arguments) throws JSONException;
+
+    public void actuate(String arguments) throws JSONException {
+        actuate(new JSONObject(arguments));
+    }
 
     public static void actuate(int actuatorId, String arguments) throws JSONException {
         mActuators.get(actuatorId).actuate(arguments);
     }
 
-    public void actuate(String arguments) throws JSONException {
-        actuate(new JSONObject(arguments));
+
+    public abstract AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule,
+                                                  final ActuatorDialogFinishListener listener);
+
+    public interface ActuatorDialogFinishListener {
+        public void onActuatorDialogFinish(Action action, Rule rule);
     }
 
     private static HashMap<Integer, Actuator> createActuatorList() {

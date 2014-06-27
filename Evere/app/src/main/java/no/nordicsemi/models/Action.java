@@ -3,6 +3,8 @@ package no.nordicsemi.models;
 import org.droidparts.annotation.sql.Column;
 import org.droidparts.annotation.sql.Table;
 import org.droidparts.model.Entity;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import no.nordicsemi.actuators.Actuator;
 
@@ -40,5 +42,22 @@ public class Action extends Entity {
 
     public void setArguments(String arguments) {
         this.arguments = arguments;
+    }
+
+    public static String jsonStringBuilder(Object... keyVals) {
+        if (keyVals.length % 2 == 1) {
+            throw new IllegalArgumentException("Arguments must be a multiple of two.");
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        for (int i=0; i<keyVals.length; i += 2) {
+            try {
+                jsonObject.put(String.valueOf(keyVals[i]), String.valueOf(keyVals[i+1]));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return jsonObject.toString();
     }
 }

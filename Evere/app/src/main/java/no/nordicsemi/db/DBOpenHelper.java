@@ -12,7 +12,7 @@ import no.nordicsemi.models.Rule;
 public class DBOpenHelper extends AbstractDBOpenHelper {
 
     private static final String DB_FILE = "Evere.sql";
-    private static final int DB_VERSION = 9;
+    private static final int DB_VERSION = 10;
 
     public DBOpenHelper(Context ctx) {
         super(ctx, DB_FILE, DB_VERSION);
