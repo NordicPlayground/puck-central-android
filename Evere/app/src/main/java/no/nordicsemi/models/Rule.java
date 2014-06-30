@@ -36,13 +36,10 @@ public class Rule extends Entity {
         return mActions;
     }
 
-    public void setActions(ArrayList<Action> actions) {
-        this.mActions = actions;
-    }
-
-    public void setAction(Action action) {
-        ArrayList<Action> actions = new ArrayList<>();
-        actions.add(action);
-        mActions = actions;
+    public void addAction(Action action) {
+        if (mActions == null) {
+            mActions = new ArrayList<>();
+        }
+        mActions.add(action);
     }
 }

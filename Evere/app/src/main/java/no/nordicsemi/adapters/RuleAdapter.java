@@ -4,9 +4,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
+import org.droidparts.bus.EventBus;
 import org.droidparts.persist.sql.stmt.Select;
 
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import no.nordicsemi.R;
 import no.nordicsemi.db.RuleManager;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Rule;
+import no.nordicsemi.triggers.Trigger;
 
 public class RuleAdapter extends EntityCursorAdapter<Rule> {
 
@@ -34,7 +37,7 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
     }
 
     @Override
-    public void bindView(Context context, View view, Rule rule) {
+    public void bindView(final Context context, View view, final Rule rule) {
         entityManager.fillForeignKeys(rule);
 
         RuleViewHolder holder = (RuleViewHolder) view.getTag();
@@ -43,13 +46,49 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
         holder.mTvTrigger.setText(rule.getTrigger());
 
         ArrayList<Action> actions = rule.getActions();
-        ArrayList<String> actuatorDescriptions = new ArrayList<>();
+        LinearLayout actuatorList = (LinearLayout) view.findViewById(R.id.lvActuatorList);
+        actuatorList.removeAllViews();
+
         for (Action action : actions) {
-            actuatorDescriptions.add(action.getActuator().getDescription());
+            View listItem = getLayoutInflater().inflate(android.R.layout.simple_list_item_2, null);
+            ((TextView) listItem.findViewById(android.R.id.text1)).setText(action.getActuator()
+                       .getDescription());
+            ((TextView) listItem.findViewById(android.R.id.text2)).setText(action.getArguments());
+            actuatorList.addView(listItem);
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(mCtx,
-                android.R.layout.simple_list_item_1, actuatorDescriptions);
-        holder.mLvActuatorList.setAdapter(adapter);
+        view.findViewById(R.id.ibAddActuatorToExistingRule)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EventBus.postEvent(Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE,
+                                rule);
+                    }
+                });
+
+        view.findViewById(R.id.ibDeleteExistingRule)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EventBus.postEvent(Trigger.TRIGGER_REMOVE_RULE, rule);
+                    }
+                });
+    }
+
+    public boolean delete(Rule rule) {
+        boolean success = entityManager.delete(rule.id);
+        if (success) {
+            requeryData();
+        }
+        return success;
+    }
+
+    public boolean createOrUpdate(Rule rule) {
+        boolean success = entityManager.createOrUpdate(rule);
+        if (success) {
+            requeryData();
+        }
+        return success;
+
     }
 }

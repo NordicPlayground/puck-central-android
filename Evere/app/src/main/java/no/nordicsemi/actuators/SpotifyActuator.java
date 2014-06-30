@@ -61,7 +61,7 @@ public class SpotifyActuator extends Actuator {
                                 editText1.getText());
 
                         action.setArguments(arguments);
-                        rule.setAction(action);
+                        rule.addAction(action);
                         listener.onActuatorDialogFinish(action, rule);
                     }
                 })

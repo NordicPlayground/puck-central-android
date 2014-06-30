@@ -20,6 +20,8 @@ public abstract class Trigger {
     public static final String TRIGGER_ENTER_ZONE = "trigger_enter_zone";
     public static final String TRIGGER_LEAVE_ZONE = "trigger_leave_zone";
     public static final String TRIGGER_ZONE_DISCOVERED = "trigger_zone_discovered";
+    public static final String TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE = "trigger_add_rule_for_existing_puck";
+    public static final String TRIGGER_REMOVE_RULE = "trigger_remove_rule";
 
     public static void trigger(Puck puck, String trigger) {
         L.i("Triggering event for puck " + puck + " and trigger " + trigger);

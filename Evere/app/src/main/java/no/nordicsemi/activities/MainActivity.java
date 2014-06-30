@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,28 +65,30 @@ public class MainActivity extends Activity {
 
         mRuleAdapter = new RuleAdapter(this, mRuleManager.select());
         mLvRules.setAdapter(mRuleAdapter);
-
-        mLvRules.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(getString(R.string.rule_remove))
-                        .setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mRuleAdapter.delete(position);
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.abort), null);
-                builder.create().show();
-                return true;
-            }
-        });
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
     public void updateTV(String _, Object toDisplay) {
         mClosestPuck.setText((String) toDisplay);
+    }
+
+    @ReceiveEvents(name = Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE)
+    public void addActuatorForExistingRule(String _, Object rule) {
+        selectActuatorDialog((Rule) rule);
+    }
+
+    @ReceiveEvents(name = Trigger.TRIGGER_REMOVE_RULE)
+    public void removeRule(String _, final Object rule) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(R.string.rule_remove)
+                .setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mRuleAdapter.delete((Rule) rule);
+                    }
+                })
+                .setNegativeButton(getString(R.string.abort), null);
+        builder.create().show();
     }
 
     boolean currentlyAddingZone = false;
@@ -211,7 +212,7 @@ public class MainActivity extends Activity {
                                             @Override
                                             public void onActuatorDialogFinish(Action action, Rule rule) {
                                                 mActionManager.create(action);
-                                                mRuleAdapter.create(rule);
+                                                mRuleAdapter.createOrUpdate(rule);
                                             }
                                         });
 

@@ -76,7 +76,7 @@ public class HttpActuator extends Actuator {
                                 editText2.getText());
 
                         action.setArguments(arguments);
-                        rule.setAction(action);
+                        rule.addAction(action);
                         actuatorDialogFinishListener.onActuatorDialogFinish(action, rule);
                     }
                 })
