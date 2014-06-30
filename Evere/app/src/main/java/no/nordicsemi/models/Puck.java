@@ -22,6 +22,9 @@ public class Puck extends Entity {
     @Column(name = DB.Column.PROXIMITY_UUID)
     private String mProximityUUID;
 
+    @Column(name = DB.Column.ADDRESS)
+    private String mAddress;
+
     @Column(name = DB.Column.SERVICE_UUIDS)
     private ArrayList<String> mServiceUUIDs;
 
@@ -75,11 +78,12 @@ public class Puck extends Entity {
 
     public Puck() {}
 
-    public Puck(String name, int minor, int major, String proximityUUID, ArrayList<String>
+    public Puck(String name, int minor, int major, String proximityUUID, String address, ArrayList<String>
             serviceUUIDs) {
         this.mName = name;
         this.mMinor = minor;
         this.mMajor = major;
+        this.mAddress = address;
         this.mProximityUUID = proximityUUID;
         this.mServiceUUIDs = serviceUUIDs;
     }
@@ -87,5 +91,13 @@ public class Puck extends Entity {
     public String getFormattedUUID() {
         return String.format("%s - %s - %s", mProximityUUID, Integer.toHexString(mMajor),
                 Integer.toHexString(mMinor));
+    }
+
+    public String getAddress() {
+        return mAddress;
+    }
+
+    public void setAddress(String mAddress) {
+        this.mAddress = mAddress;
     }
 }

@@ -13,5 +13,6 @@ public class DB {
         String PUCK = "puck";
         String TRIGGER = "trigger";
         String ACTIONS = "actions";
+        String ADDRESS = "address";
     }
 }

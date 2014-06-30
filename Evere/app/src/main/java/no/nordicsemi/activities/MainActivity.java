@@ -114,6 +114,7 @@ public class MainActivity extends Activity {
                 iBeacon.getMinor(),
                 iBeacon.getMajor(),
                 iBeacon.getProximityUuid(),
+                iBeacon.getBluetoothAddress(),
                 serviceUUIDs);
 
         final View view = getLayoutInflater().inflate(R.layout.dialog_location_puck_add, null);

@@ -38,6 +38,14 @@ public class PuckManager extends EntityManager<Puck> {
         return select().where(query);
     }
 
+    public Puck read(String UUID, int major, int minor) {
+        return readFirst(find(UUID, major, minor));
+    }
+
+    public Puck readByAddress(String address) {
+        return readFirst(select().where(DB.Column.ADDRESS, Is.EQUAL, address));
+    }
+
     public ArrayList<Puck> getAll() {
         return readAll(select());
     }
