@@ -70,6 +70,8 @@ public class LocationManager {
                 return;
             }
         }
+
+        setLocation(null);
     }
 
     private void setLocation(IBeacon iBeacon) {
