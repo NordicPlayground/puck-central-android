@@ -60,16 +60,21 @@ public class IRActuator extends PuckActuator {
                 .setPositiveButton(ctx.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Puck p = rule.getPuck();
+
                         String arguments = Action.jsonStringBuilder(
-                                ARGUMENT_HEADER, "[4500, 4500]",
-                                ARGUMENT_ONE, "[560, 1680]",
-                                ARGUMENT_ZERO, "[560, 560]",
-                                ARGUMENT_PTRAIL, "560",
-                                ARGUMENT_PREDATA, "E0E0",
-                                ARGUMENT_CODE, editText1.getText());
+                                IRActuator.ARGUMENT_UUID, p.getProximityUUID(),
+                                IRActuator.ARGUMENT_MAJOR, p.getMajor(),
+                                IRActuator.ARGUMENT_MINOR, p.getMinor(),
+                                IRActuator.ARGUMENT_HEADER, new int[]{9000, 4500},
+                                IRActuator.ARGUMENT_ONE,  new int[]{560, 1680},
+                                IRActuator.ARGUMENT_ZERO,  new int[]{560, 560},
+                                IRActuator.ARGUMENT_PTRAIL, 560,
+                                IRActuator.ARGUMENT_PREDATA, "E0E0",
+                                IRActuator.ARGUMENT_CODE, editText1.getText().toString());
 
                         action.setArguments(arguments);
-                        rule.setAction(action);
+                        rule.addAction(action);
                         listener.onActuatorDialogFinish(action, rule);
                     }
                 })
@@ -83,15 +88,15 @@ public class IRActuator extends PuckActuator {
         BluetoothGattCharacteristic characteristic;
         if(arguments.has(ARGUMENT_HEADER)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir header  "));
-            writeInt16Array(gatt, characteristic, (JSONArray) arguments.get(ARGUMENT_HEADER));
+            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_HEADER));
         }
         if(arguments.has(ARGUMENT_ONE)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir one     "));
-            writeInt16Array(gatt, characteristic, (JSONArray) arguments.get(ARGUMENT_ONE));
+            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ONE));
         }
         if(arguments.has(ARGUMENT_ZERO)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir zero    "));
-            writeInt16Array(gatt, characteristic, (JSONArray) arguments.get(ARGUMENT_ZERO));
+            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ZERO));
         }
         if(arguments.has(ARGUMENT_PTRAIL)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir ptrail  "));
@@ -100,12 +105,12 @@ public class IRActuator extends PuckActuator {
         }
         if(arguments.has(ARGUMENT_PREDATA)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir predata "));
-            byte[] array = NumberUtils.stringNumberToByteArray((String) arguments.get(ARGUMENT_PREDATA), 16, 2);
+            byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_PREDATA), 16, 2);
             write(gatt, characteristic, array);
         }
         if(arguments.has(ARGUMENT_CODE)) {
             characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir code    "));
-            byte[] array = NumberUtils.stringNumberToByteArray((String) arguments.get(ARGUMENT_CODE), 16, 2);
+            byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_CODE), 16, 2);
             write(gatt, characteristic, array);
 
         }

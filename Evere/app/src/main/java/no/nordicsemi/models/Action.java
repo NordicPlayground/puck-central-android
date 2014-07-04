@@ -52,7 +52,7 @@ public class Action extends Entity {
         JSONObject jsonObject = new JSONObject();
         for (int i=0; i<keyVals.length; i += 2) {
             try {
-                jsonObject.put(String.valueOf(keyVals[i]), String.valueOf(keyVals[i+1]));
+                jsonObject.put(String.valueOf(keyVals[i]), JSONObject.wrap(keyVals[i+1]));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

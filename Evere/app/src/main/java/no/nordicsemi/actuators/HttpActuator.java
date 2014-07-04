@@ -42,9 +42,9 @@ public class HttpActuator extends Actuator {
         new SimpleAsyncTask<Void>(mContext, null) {
             @Override
             protected Void onExecute() throws Exception {
-                mRestClient.post((String) arguments.get(URL),
+                mRestClient.post(arguments.getString(URL),
                         ENCODING,
-                        (String) arguments.get(DATA));
+                        arguments.getString(DATA));
                 return null;
             }
         }.execute();
@@ -70,10 +70,9 @@ public class HttpActuator extends Actuator {
                 .setPositiveButton(ctx.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String arguments = Action.jsonStringBuilder(URL,
-                                editText1.getText(),
-                                DATA,
-                                editText2.getText());
+                        String arguments = Action.jsonStringBuilder(
+                                URL, editText1.getText().toString(),
+                                DATA, editText2.getText().toString());
 
                         action.setArguments(arguments);
                         rule.addAction(action);

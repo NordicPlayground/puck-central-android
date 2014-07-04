@@ -34,7 +34,7 @@ public class RingerActuator extends Actuator {
     @Override
     public void actuate(JSONObject arguments) throws JSONException {
         if (arguments.has(MODE)) {
-            mAudioManager.setRingerMode(Integer.valueOf((String) arguments.get(MODE)));
+            mAudioManager.setRingerMode(arguments.getInt(MODE));
         } else {
             throw new IllegalArgumentException("Arguments do not contain MODE");
         }

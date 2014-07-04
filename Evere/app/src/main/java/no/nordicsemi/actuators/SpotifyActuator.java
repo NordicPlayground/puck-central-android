@@ -36,7 +36,7 @@ public class SpotifyActuator extends Actuator {
 
     @Override
     void actuate(JSONObject arguments) throws JSONException {
-        String uri = (String) arguments.get(SPOTIFY_URI);
+        String uri = arguments.getString(SPOTIFY_URI);
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mCtx.startActivity(intent);
@@ -58,7 +58,7 @@ public class SpotifyActuator extends Actuator {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String arguments = Action.jsonStringBuilder(SPOTIFY_URI,
-                                editText1.getText());
+                                editText1.getText().toString());
 
                         action.setArguments(arguments);
                         rule.addAction(action);
