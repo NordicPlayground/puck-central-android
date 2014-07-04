@@ -7,9 +7,9 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 
 import org.droidparts.annotation.inject.InjectDependency;
-import org.droidparts.annotation.inject.InjectSystemService;
 import org.droidparts.util.L;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.util.LinkedList;
 
+import no.nordicsemi.R;
 import no.nordicsemi.bluetooth.GattCharacteristicWriteOperation;
 import no.nordicsemi.db.PuckManager;
 import no.nordicsemi.models.Puck;
@@ -31,9 +32,6 @@ public abstract class PuckActuator extends Actuator {
     @InjectDependency
     PuckManager mPuckManager;
 
-    @InjectSystemService
-    BluetoothManager mBluetoothManager;
-
     LinkedList<GattCharacteristicWriteOperation> writeQueue;
 
     @Override
@@ -46,14 +44,14 @@ public abstract class PuckActuator extends Actuator {
 
     public void write(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
         writeQueue.add(new GattCharacteristicWriteOperation(gatt, characteristic, value));
-        if(writeQueue.size() == 1) {
+        if (writeQueue.size() == 1) {
             driveWriteQueue();
         }
     }
 
     public void writeInt16Array(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, JSONArray integers) {
-        if(integers.length() > 10) {
-            throw new IllegalArgumentException("Too many integers at once, can only send 20 bytes at a time.");
+        if (integers.length() > 10) {
+            throw new IllegalArgumentException(mContext.getString(R.string.error_too_many_integers));
         }
         byte[] array = new byte[integers.length() * 2];
         int index = 0;
@@ -82,53 +80,41 @@ public abstract class PuckActuator extends Actuator {
 
     @Override
     void actuate(final JSONObject arguments) throws JSONException {
-        final String UUID = (String) arguments.get(ARGUMENT_UUID);
-        int major = (Integer) arguments.get(ARGUMENT_MAJOR);
-        int minor = (Integer) arguments.get(ARGUMENT_MINOR);
-        final Puck puck = mPuckManager.read(UUID, major, minor);
+        String UUID = arguments.getString(ARGUMENT_UUID);
+        int major = arguments.getInt(ARGUMENT_MAJOR);
+        int minor = arguments.getInt(ARGUMENT_MINOR);
+        Puck puck = mPuckManager.read(UUID, major, minor);
 
-        final BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
+        BluetoothAdapter bluetoothAdapter = ((BluetoothManager) mContext.getSystemService
+                (Context.BLUETOOTH_SERVICE)).getAdapter();
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
+        device.connectGatt(mContext, false, new BluetoothGattCallback() {
+            @Override
+            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                super.onConnectionStateChange(gatt, status, newState);
 
-        bluetoothAdapter.startLeScan(new BluetoothAdapter.LeScanCallback() {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    gatt.discoverServices();
+                }
+            }
 
             @Override
-            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                if(!device.toString().equals(puck.getAddress())) {
-                    return;
+            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                super.onCharacteristicWrite(gatt, characteristic, status);
+                writeQueue.removeFirst();
+                driveWriteQueue();
+            }
+
+            @Override
+            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                super.onServicesDiscovered(gatt, status);
+                try {
+                    actuateOnPuck(gatt, arguments);
+                } catch (JSONException e) {
+                    L.e(e);
                 }
-
-                bluetoothAdapter.stopLeScan(this);
-
-                device.connectGatt(mContext, false, new BluetoothGattCallback() {
-                    @Override
-                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                        super.onConnectionStateChange(gatt, status, newState);
-
-                        if (newState == BluetoothProfile.STATE_CONNECTED) {
-                            gatt.discoverServices();
-                        }
-                    }
-
-                    @Override
-                    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                        super.onCharacteristicWrite(gatt, characteristic, status);
-                        writeQueue.removeFirst();
-                        driveWriteQueue();
-                    }
-
-                    @Override
-                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                        super.onServicesDiscovered(gatt, status);
-                        try {
-                            actuateOnPuck(gatt, arguments);
-                        } catch (JSONException e) {
-                            L.e(e);
-                        }
-                    }
-                });
             }
         });
-
     }
 
     public abstract void actuateOnPuck(BluetoothGatt bluetoothGatt, JSONObject arguments) throws JSONException;

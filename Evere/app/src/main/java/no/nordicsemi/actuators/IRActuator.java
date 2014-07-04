@@ -3,7 +3,6 @@ package no.nordicsemi.actuators;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,16 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import org.droidparts.util.L;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Collection;
-import java.util.UUID;
-
 import no.nordicsemi.R;
 import no.nordicsemi.models.Action;
+import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
 import no.nordicsemi.utils.NumberUtils;
 import no.nordicsemi.utils.UUIDUtils;
