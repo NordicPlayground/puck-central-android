@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
@@ -46,15 +45,14 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
         holder.mTvTrigger.setText(rule.getTrigger());
 
         ArrayList<Action> actions = rule.getActions();
-        LinearLayout actuatorList = (LinearLayout) view.findViewById(R.id.lvActuatorList);
-        actuatorList.removeAllViews();
+        holder.lvActuatorList.removeAllViews();
 
         for (Action action : actions) {
             View listItem = getLayoutInflater().inflate(android.R.layout.simple_list_item_2, null);
             ((TextView) listItem.findViewById(android.R.id.text1)).setText(action.getActuator()
                        .getDescription());
             ((TextView) listItem.findViewById(android.R.id.text2)).setText(action.getArguments());
-            actuatorList.addView(listItem);
+            holder.lvActuatorList.addView(listItem);
         }
 
         view.findViewById(R.id.ibAddActuatorToExistingRule)

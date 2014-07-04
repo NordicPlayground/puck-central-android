@@ -1,7 +1,7 @@
 package no.nordicsemi.adapters;
 
 import android.view.View;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.droidparts.adapter.holder.ViewHolder;
@@ -18,7 +18,7 @@ public class RuleViewHolder extends ViewHolder {
     public TextView mTvTrigger;
 
     @InjectView(id = R.id.lvActuatorList)
-    public ListView mLvActuatorList;
+    public LinearLayout lvActuatorList;
 
     public RuleViewHolder(View view) {
         super(view);
