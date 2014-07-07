@@ -13,6 +13,8 @@ import android.widget.EditText;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.UUID;
+
 import no.nordicsemi.R;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
@@ -30,6 +32,13 @@ public class IRActuator extends PuckActuator {
     public static final String ARGUMENT_CODE = "code";
 
     public static final String CODE = "Remote control code";
+    public static final UUID SERVICE_UUID = UUIDUtils.stringToUUID("bftj ir         ");
+    public static final UUID CHARACTERISTIC_HEADER_UUID = UUIDUtils.stringToUUID("bftj ir header  ");
+    public static final UUID CHARACTERISTIC_ONE_UUID = UUIDUtils.stringToUUID("bftj ir one     ");
+    public static final UUID CHARACTERISTIC_ZERO_UUID = UUIDUtils.stringToUUID("bftj ir zero    ");
+    public static final UUID CHARACTERISTIC_PTRAIL_UUID = UUIDUtils.stringToUUID("bftj ir ptrail  ");
+    public static final UUID CHARACTERISTIC_PREDATA_UUID = UUIDUtils.stringToUUID("bftj ir predata ");
+    public static final UUID CHARACTERISTIC_CODE_UUID = UUIDUtils.stringToUUID("bftj ir code    ");
 
     @Override
     public String getDescription() {
@@ -62,8 +71,8 @@ public class IRActuator extends PuckActuator {
                                 IRActuator.ARGUMENT_MAJOR, p.getMajor(),
                                 IRActuator.ARGUMENT_MINOR, p.getMinor(),
                                 IRActuator.ARGUMENT_HEADER, new int[]{9000, 4500},
-                                IRActuator.ARGUMENT_ONE,  new int[]{560, 1680},
-                                IRActuator.ARGUMENT_ZERO,  new int[]{560, 560},
+                                IRActuator.ARGUMENT_ONE, new int[]{560, 1680},
+                                IRActuator.ARGUMENT_ZERO, new int[]{560, 560},
                                 IRActuator.ARGUMENT_PTRAIL, 560,
                                 IRActuator.ARGUMENT_PREDATA, "E0E0",
                                 IRActuator.ARGUMENT_CODE, editText1.getText().toString());
@@ -79,32 +88,32 @@ public class IRActuator extends PuckActuator {
 
     @Override
     public void actuateOnPuck(BluetoothGatt gatt, JSONObject arguments) throws JSONException {
-        BluetoothGattService service = gatt.getService(UUIDUtils.stringToUUID("bftj ir         "));
+        BluetoothGattService service = gatt.getService(SERVICE_UUID);
         BluetoothGattCharacteristic characteristic;
         if(arguments.has(ARGUMENT_HEADER)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir header  "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_HEADER_UUID);
             writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_HEADER));
         }
         if(arguments.has(ARGUMENT_ONE)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir one     "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_ONE_UUID);
             writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ONE));
         }
         if(arguments.has(ARGUMENT_ZERO)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir zero    "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_ZERO_UUID);
             writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ZERO));
         }
         if(arguments.has(ARGUMENT_PTRAIL)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir ptrail  "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_PTRAIL_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray("" + arguments.get(ARGUMENT_PTRAIL), 10, 2);
             write(gatt, characteristic, array);
         }
         if(arguments.has(ARGUMENT_PREDATA)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir predata "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_PREDATA_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_PREDATA), 16, 2);
             write(gatt, characteristic, array);
         }
         if(arguments.has(ARGUMENT_CODE)) {
-            characteristic = service.getCharacteristic(UUIDUtils.stringToUUID("bftj ir code    "));
+            characteristic = service.getCharacteristic(CHARACTERISTIC_CODE_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_CODE), 16, 2);
             write(gatt, characteristic, array);
 
