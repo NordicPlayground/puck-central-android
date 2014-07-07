@@ -95,8 +95,7 @@ public class LocationManager {
             }
         } else if (!newClosestPuck.equals(mClosestPuck)) {
             leaveCurrentZone();
-            mClosestPuck = newClosestPuck;
-            enterCurrentZone();
+            enterNewZone(newClosestPuck);
         }
     }
 
@@ -112,7 +111,8 @@ public class LocationManager {
         mClosestPuck = null;
     }
 
-    private void enterCurrentZone() {
+    private void enterNewZone(Puck newClosestPuck) {
+        mClosestPuck = newClosestPuck;
         updateClosestPuckGUI(mCtx.getString(R.string.currently_near_puck, mClosestPuck.getName()));
         Trigger.trigger(
                 mClosestPuck,
