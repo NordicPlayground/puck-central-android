@@ -1,10 +1,10 @@
 package no.nordicsemi.actuators;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.media.AudioManager;
 
+import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectSystemService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,9 +41,9 @@ public class RingerActuator extends Actuator {
     }
 
     @Override
-    public AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule,
+    public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule,
                                          final ActuatorDialogFinishListener listener) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx)
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setTitle(getDescription())
                 .setItems(RINGER_MODES, new DialogInterface.OnClickListener() {
                     @Override
@@ -72,7 +72,7 @@ public class RingerActuator extends Actuator {
                         listener.onActuatorDialogFinish(action, rule);
                     }
                 })
-                .setNegativeButton(ctx.getString(R.string.abort), null);
+                .setNegativeButton(activity.getString(R.string.abort), null);
         return builder.create();
     }
 }

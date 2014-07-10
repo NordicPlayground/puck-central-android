@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 
 import org.droidparts.Injector;
+import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,7 +55,7 @@ public abstract class Actuator {
     }
 
 
-    public abstract AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule,
+    public abstract AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule,
                                                   final ActuatorDialogFinishListener listener);
 
     public interface ActuatorDialogFinishListener {

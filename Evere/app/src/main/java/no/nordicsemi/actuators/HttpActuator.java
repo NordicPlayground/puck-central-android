@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.concurrent.task.SimpleAsyncTask;
 import org.droidparts.net.http.RESTClient;
@@ -51,8 +52,8 @@ public class HttpActuator extends Actuator {
     }
 
     @Override
-    public AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule, final ActuatorDialogFinishListener actuatorDialogFinishListener) {
-        LayoutInflater layoutInflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule, final ActuatorDialogFinishListener actuatorDialogFinishListener) {
+        LayoutInflater layoutInflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         View view = layoutInflater.inflate(R.layout.dialog_actuator_double_textinput, null);
 
@@ -64,10 +65,10 @@ public class HttpActuator extends Actuator {
         editText2.setHint(DATA);
         editText2.setText("message=");
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx)
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
                 .setTitle(getDescription())
-                .setPositiveButton(ctx.getString(R.string.accept), new DialogInterface.OnClickListener() {
+                .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String arguments = Action.jsonStringBuilder(
@@ -79,7 +80,7 @@ public class HttpActuator extends Actuator {
                         actuatorDialogFinishListener.onActuatorDialogFinish(action, rule);
                     }
                 })
-                .setNegativeButton(ctx.getString(R.string.reject), null);
+                .setNegativeButton(activity.getString(R.string.reject), null);
         return builder.create();
     }
 }

@@ -8,11 +8,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 
+import org.droidparts.activity.Activity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import no.nordicsemi.R;
@@ -51,25 +56,39 @@ public class IRActuator extends PuckActuator {
     }
 
     @Override
-    public AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule, final ActuatorDialogFinishListener listener) {
-        LayoutInflater layoutInflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule, final ActuatorDialogFinishListener listener) {
+        LayoutInflater layoutInflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View view = layoutInflater.inflate(R.layout.dialog_actuator_single_textinput, null);
+        View view = layoutInflater.inflate(R.layout.dialog_actuator_single_select_single_textinput, null);
         final EditText editText1 = (EditText) view.findViewById(R.id.etDialogActuatorEditText1);
         editText1.setHint(CODE);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx)
+        final List<Puck> irPucks = mPuckManager.withServiceUUID(GattServices.IR_SERVICE_UUID);
+
+        final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);
+        List<String> irPuckNames = new ArrayList<>();
+        for (Puck irPuck : irPucks) {
+            irPuckNames.add(irPuck.getName());
+        }
+
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(activity,
+                android.R.layout.simple_spinner_item, irPuckNames);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerAdapter);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
                 .setTitle(getDescription())
-                .setPositiveButton(ctx.getString(R.string.accept), new DialogInterface.OnClickListener() {
+                .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Puck p = rule.getPuck();
+                        int idx = spinner.getSelectedItemPosition();
+                        Puck puck = irPucks.get(idx);
 
                         String arguments = Action.jsonStringBuilder(
-                                IRActuator.ARGUMENT_UUID, p.getProximityUUID(),
-                                IRActuator.ARGUMENT_MAJOR, p.getMajor(),
-                                IRActuator.ARGUMENT_MINOR, p.getMinor(),
+                                IRActuator.ARGUMENT_UUID, puck.getProximityUUID(),
+                                IRActuator.ARGUMENT_MAJOR, puck.getMajor(),
+                                IRActuator.ARGUMENT_MINOR, puck.getMinor(),
                                 IRActuator.ARGUMENT_HEADER, new int[]{9000, 4500},
                                 IRActuator.ARGUMENT_ONE, new int[]{560, 1680},
                                 IRActuator.ARGUMENT_ZERO, new int[]{560, 560},
@@ -82,7 +101,7 @@ public class IRActuator extends PuckActuator {
                         listener.onActuatorDialogFinish(action, rule);
                     }
                 })
-                .setNegativeButton(ctx.getString(R.string.reject), null);
+                .setNegativeButton(activity.getString(R.string.reject), null);
         return builder.create();
     }
 

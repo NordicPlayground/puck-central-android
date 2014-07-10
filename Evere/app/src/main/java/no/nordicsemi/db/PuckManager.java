@@ -10,6 +10,8 @@ import org.droidparts.persist.sql.stmt.Select;
 import org.droidparts.persist.sql.stmt.Where;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import no.nordicsemi.models.Puck;
 
@@ -32,6 +34,18 @@ public class PuckManager extends EntityManager<Puck> {
                 .and(DB.Column.MAJOR, Is.EQUAL, major)
                 .and(DB.Column.MINOR, Is.EQUAL, minor);
         return select().where(query);
+    }
+
+    public List<Puck> withServiceUUID(UUID serviceUUID) {
+        List<Puck> pucks = new ArrayList<>();
+
+        for (Puck puck : getAll()) {
+            if (puck.getServiceUUIDs().contains(serviceUUID)) {
+                pucks.add(puck);
+            }
+        }
+
+        return pucks;
     }
 
     public Puck read(String UUID, int major, int minor) {

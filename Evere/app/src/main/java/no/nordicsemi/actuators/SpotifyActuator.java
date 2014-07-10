@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
+import org.droidparts.activity.Activity;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,18 +44,18 @@ public class SpotifyActuator extends Actuator {
     }
 
     @Override
-    public AlertDialog getActuatorDialog(Context ctx, final Action action, final Rule rule,
+    public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule,
                                          final ActuatorDialogFinishListener listener) {
-        LayoutInflater layoutInflater = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         View view = layoutInflater.inflate(R.layout.dialog_actuator_single_textinput, null);
         final EditText editText1 = (EditText) view.findViewById(R.id.etDialogActuatorEditText1);
         editText1.setHint(SPOTIFY_URI);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(ctx)
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
                 .setTitle(getDescription())
-                .setPositiveButton(ctx.getString(R.string.accept), new DialogInterface.OnClickListener() {
+                .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String arguments = Action.jsonStringBuilder(SPOTIFY_URI,
@@ -65,7 +66,7 @@ public class SpotifyActuator extends Actuator {
                         listener.onActuatorDialogFinish(action, rule);
                     }
                 })
-                .setNegativeButton(ctx.getString(R.string.reject), null);
+                .setNegativeButton(activity.getString(R.string.reject), null);
         return builder.create();
     }
 }
