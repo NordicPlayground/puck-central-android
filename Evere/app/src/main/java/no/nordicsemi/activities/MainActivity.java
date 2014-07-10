@@ -103,6 +103,34 @@ public class MainActivity extends Activity {
         builder.create().show();
     }
 
+    public void removePuck() {
+        final List<Puck> puckList = mPuckManager.getAll();
+        if (puckList.size() == 0) {
+            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<String> puckNames = new ArrayList<>();
+        for (Puck puck : puckList) {
+            puckNames.add(puck.getName());
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.puck_remove))
+                .setItems(puckNames.toArray(new CharSequence[puckNames.size()]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Puck puck = puckList.get(i);
+                        mRuleManager.deteRulesWithPuckId(puck.id);
+                        mRuleAdapter.requeryData();
+                        mPuckManager.delete(puck.id);
+                    }
+                })
+                .setNegativeButton(getString(R.string.abort), null);
+
+        builder.create().show();
+    }
+
     boolean currentlyAddingZone = false;
     @ReceiveEvents(name = Trigger.TRIGGER_ZONE_DISCOVERED)
     public void createDiscoveredZoneModal(String _, final IBeacon iBeacon) {
@@ -320,6 +348,10 @@ public class MainActivity extends Activity {
 
             case R.id.action_add_rule:
                 selectDeviceDialog();
+                return true;
+
+            case R.id.action_remove_puck:
+                removePuck();
                 return true;
 
             default:

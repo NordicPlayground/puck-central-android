@@ -38,4 +38,11 @@ public class RuleManager extends EntityManager<Rule> {
                     .where(DB.Column.TRIGGER, Is.EQUAL, triggerIdentifier));
         }
     }
+
+    public void deteRulesWithPuckId(long id) {
+        List<Rule> toDelete = readAll(select().where(DB.Column.PUCK, Is.EQUAL, id));
+        for (Rule rule : toDelete) {
+            super.delete(rule.id);
+        }
+    }
 }
