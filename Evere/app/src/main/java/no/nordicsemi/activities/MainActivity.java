@@ -204,7 +204,7 @@ public class MainActivity extends Activity {
 
     @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
     public void updateTV(String _, Object toDisplay) {
-        mClosestPuck.setText((String) toDisplay);
+        mClosestPuck.setText(String.valueOf(toDisplay));
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE)
@@ -277,7 +277,7 @@ public class MainActivity extends Activity {
                 iBeacon.getBluetoothAddress(),
                 defaultServiceUUIDs);
 
-        final View view = getLayoutInflater().inflate(R.layout.dialog_location_puck_add, null);
+        final View view = getLayoutInflater().inflate(R.layout.dialog_location_puck_add, null, false);
         ((TextView) view.findViewById(R.id.tvLocationPuckIdentifier)).setText(newPuck.getFormattedUUID());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
