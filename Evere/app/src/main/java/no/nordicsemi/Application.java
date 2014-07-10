@@ -14,8 +14,8 @@ public class Application extends AbstractApplication {
 
     public void onCreate() {
         super.onCreate();
-        bootstrapLocationServices();
         enableBluetooth();
+        bootstrapLocationServices();
     }
 
     public void bootstrapLocationServices() {
