@@ -19,6 +19,7 @@ import no.nordicsemi.R;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
+import no.nordicsemi.services.GattServices;
 import no.nordicsemi.utils.NumberUtils;
 import no.nordicsemi.utils.UUIDUtils;
 
@@ -32,7 +33,6 @@ public class IRActuator extends PuckActuator {
     public static final String ARGUMENT_CODE = "code";
 
     public static final String CODE = "Remote control code";
-    public static final UUID SERVICE_UUID = UUIDUtils.stringToUUID("bftj ir         ");
     public static final UUID CHARACTERISTIC_HEADER_UUID = UUIDUtils.stringToUUID("bftj ir header  ");
     public static final UUID CHARACTERISTIC_ONE_UUID = UUIDUtils.stringToUUID("bftj ir one     ");
     public static final UUID CHARACTERISTIC_ZERO_UUID = UUIDUtils.stringToUUID("bftj ir zero    ");
@@ -88,7 +88,7 @@ public class IRActuator extends PuckActuator {
 
     @Override
     public void actuateOnPuck(BluetoothGatt gatt, JSONObject arguments) throws JSONException {
-        BluetoothGattService service = gatt.getService(SERVICE_UUID);
+        BluetoothGattService service = gatt.getService(GattServices.IR_SERVICE_UUID);
         BluetoothGattCharacteristic characteristic;
         if(arguments.has(ARGUMENT_HEADER)) {
             characteristic = service.getCharacteristic(CHARACTERISTIC_HEADER_UUID);

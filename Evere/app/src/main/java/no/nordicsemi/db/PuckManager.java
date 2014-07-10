@@ -19,10 +19,6 @@ public class PuckManager extends EntityManager<Puck> {
         super(Puck.class, ctx);
     }
 
-    public boolean locationPuckExists(Puck puck) {
-        return find(puck.getProximityUUID(), puck.getMajor(), puck.getMinor()).count() > 0;
-    }
-
     public Puck forIBeacon(IBeacon iBeacon) {
         if (iBeacon == null) {
             return null;
@@ -40,10 +36,6 @@ public class PuckManager extends EntityManager<Puck> {
 
     public Puck read(String UUID, int major, int minor) {
         return readFirst(find(UUID, major, minor));
-    }
-
-    public Puck readByAddress(String address) {
-        return readFirst(select().where(DB.Column.ADDRESS, Is.EQUAL, address));
     }
 
     public ArrayList<Puck> getAll() {

@@ -2,6 +2,14 @@ package no.nordicsemi.activities;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,9 +25,13 @@ import org.droidparts.activity.Activity;
 import org.droidparts.annotation.bus.ReceiveEvents;
 import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.annotation.inject.InjectView;
+import org.droidparts.concurrent.task.AsyncTaskResultListener;
+import org.droidparts.concurrent.task.SimpleAsyncTask;
+import org.droidparts.util.L;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import no.nordicsemi.R;
 import no.nordicsemi.actuators.Actuator;
@@ -30,7 +42,7 @@ import no.nordicsemi.db.RuleManager;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
-import no.nordicsemi.services.GattService;
+import no.nordicsemi.services.GattServices;
 import no.nordicsemi.triggers.Trigger;
 
 
@@ -93,29 +105,26 @@ public class MainActivity extends Activity {
 
     boolean currentlyAddingZone = false;
     @ReceiveEvents(name = Trigger.TRIGGER_ZONE_DISCOVERED)
-    public void addDiscoveredZoneModal(String _, final IBeacon iBeacon) {
+    public void createDiscoveredZoneModal(String _, final IBeacon iBeacon) {
         if (currentlyAddingZone) {
             return;
-        }
-        currentlyAddingZone = true;
-
-        if (mPuckManager.forIBeacon(iBeacon) != null) {
+        } else if (mPuckManager.forIBeacon(iBeacon) != null) {
             Toast.makeText(this,
                     getString(R.string.location_puck_already_paired),
                     Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // TODO: serviceUUID is used to find out which triggers a puck supports.
-        // This should be fetched via the bluetooth service, as opposed to hardcoding it here.
-        ArrayList<String> serviceUUIDs = new ArrayList<>();
-        serviceUUIDs.add(Integer.toString(0xC175));
+        currentlyAddingZone = true;
+
+        ArrayList<UUID> defaultServiceUUIDs = new ArrayList<>();
+        defaultServiceUUIDs.add(GattServices.LOCATION_SERVICE_UUID);
         final Puck newPuck = new Puck(null,
                 iBeacon.getMinor(),
                 iBeacon.getMajor(),
                 iBeacon.getProximityUuid(),
                 iBeacon.getBluetoothAddress(),
-                serviceUUIDs);
+                defaultServiceUUIDs);
 
         final View view = getLayoutInflater().inflate(R.layout.dialog_location_puck_add, null);
         ((TextView) view.findViewById(R.id.tvLocationPuckIdentifier)).setText(newPuck.getFormattedUUID());
@@ -129,8 +138,9 @@ public class MainActivity extends Activity {
                         String locationPuckName = ((TextView) view.findViewById(R.id
                                 .etLocationPuckName)).getText().toString();
                         newPuck.setName(locationPuckName);
-
                         mPuckManager.create(newPuck);
+
+                        new FetchPuckServices(MainActivity.this, null, newPuck).execute();
                     }
                 })
                 .setNegativeButton(getString(R.string.reject), null)
@@ -143,6 +153,72 @@ public class MainActivity extends Activity {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    /**
+     * Fetches gatt service UUIDs for a given puck,
+     * and adds themthe pucks list of serviceUUIDs.
+     *
+     * If a puck advertises as non-connectable, the onServicesDiscovered callback
+     * will (propably) never be triggered, not updating the puck.
+     *
+     * This approach was chosen as android provides no way to check if a BLE device
+     * is connectable or not (that i could find).
+     */
+    private class FetchPuckServices extends SimpleAsyncTask<Void> {
+        private Puck mPuck;
+
+        public FetchPuckServices(Context ctx, AsyncTaskResultListener<Void> resultListener, Puck puck) {
+            super(ctx, resultListener);
+            mPuck = puck;
+        }
+
+        @Override
+        protected Void onExecute() throws Exception {
+            BluetoothAdapter bluetoothAdapter = ((BluetoothManager) getSystemService(Context
+                    .BLUETOOTH_SERVICE)).getAdapter();
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mPuck.getAddress());
+            L.e("Starting service discovery");
+            device.connectGatt(MainActivity.this, false, new BluetoothGattCallback() {
+                @Override
+                public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                    super.onConnectionStateChange(gatt, status, newState);
+
+                    L.e("Got status " + status + " and state " + newState);
+                    // Catch-all for a variety of undocumented error codes.
+                    // Documented at https://code.google.com/r/naranjomanuel-opensource-broadcom-ble/source/browse/api/java/src/com/broadcom/bt/le/api/BleConstants.java?r=f535f31ec89eb3076a2b75ddf586f4b3fc44384b
+                    if (status != BluetoothGatt.GATT_SUCCESS) {
+                        L.e("Ouch! Disconnecting! status: " + status + " newState " + newState);
+                        gatt.disconnect();
+                        return;
+                    }
+
+                    if (newState == BluetoothProfile.STATE_CONNECTED) {
+                        L.e("Connected to service!");
+                        gatt.discoverServices();
+                    } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                        L.e("Link disconnected");
+                    } else {
+                        L.e("Received something else, ");
+                    }
+                }
+
+                @Override
+                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                    super.onServicesDiscovered(gatt, status);
+                    ArrayList<UUID> serviceUUIDs = mPuck.getServiceUUIDs();
+
+                    for (BluetoothGattService service : gatt.getServices()) {
+                        serviceUUIDs.add(service.getUuid());
+                    }
+                    mPuck.setServiceUUIDs(serviceUUIDs);
+                    mPuckManager.update(mPuck);
+                    L.e("Now has services: " + mPuck.getServiceUUIDs());
+                    gatt.disconnect();
+                }
+            });
+            return null;
+        }
     }
 
     public void selectDeviceDialog() {
@@ -169,20 +245,19 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton(getString(R.string.abort), null);
 
-
         builder.create().show();
     }
 
     public void selectTriggerDialog(final Rule rule) {
-        String serviceUUID = rule.getPuck().getServiceUUIDs().get(0);
-        final String[] triggerIdentifiers = GattService.getTriggersForServiceUUID(serviceUUID);
+        ArrayList<UUID> serviceUUIDs = rule.getPuck().getServiceUUIDs();
+        final String[] triggers = GattServices.getTriggersForServiceUUIDs(serviceUUIDs);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.select_trigger))
-                .setItems(triggerIdentifiers, new DialogInterface.OnClickListener() {
+                .setItems(triggers, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        rule.setTrigger(triggerIdentifiers[which]);
+                        rule.setTrigger(triggers[which]);
                         selectActuatorDialog(rule);
                     }
                 })

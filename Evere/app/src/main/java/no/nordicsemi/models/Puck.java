@@ -5,6 +5,7 @@ import org.droidparts.annotation.sql.Table;
 import org.droidparts.model.Entity;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import no.nordicsemi.db.DB;
 
@@ -26,7 +27,7 @@ public class Puck extends Entity {
     private String mAddress;
 
     @Column(name = DB.Column.SERVICE_UUIDS)
-    private ArrayList<String> mServiceUUIDs;
+    private ArrayList<UUID> mServiceUUIDs;
 
     public void setName(String name) {
         this.mName = name;
@@ -55,6 +56,7 @@ public class Puck extends Entity {
         if (mMajor != puck.mMajor) return false;
         if (mMinor != puck.mMinor) return false;
         if (!mProximityUUID.equals(puck.mProximityUUID)) return false;
+        // Consider adding check for puck address
 
         return true;
     }
@@ -72,13 +74,17 @@ public class Puck extends Entity {
         return mProximityUUID;
     }
 
-    public ArrayList<String> getServiceUUIDs() {
+    public ArrayList<UUID> getServiceUUIDs() {
         return mServiceUUIDs;
+    }
+
+    public void setServiceUUIDs(ArrayList<UUID> serviceUUIDs) {
+        mServiceUUIDs = serviceUUIDs;
     }
 
     public Puck() {}
 
-    public Puck(String name, int minor, int major, String proximityUUID, String address, ArrayList<String>
+    public Puck(String name, int minor, int major, String proximityUUID, String address, ArrayList<UUID>
             serviceUUIDs) {
         this.mName = name;
         this.mMinor = minor;
