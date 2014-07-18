@@ -82,7 +82,6 @@ public class GattManager {
                 public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                     super.onServicesDiscovered(gatt, status);
                     L.d("services discovered, status: " + status);
-                    L.d("service is: " + gatt.getService(DisplayActuator.SERVICE_DISPLAY_UUID).getUuid());
                     operation.execute(gatt);
                 }
 
