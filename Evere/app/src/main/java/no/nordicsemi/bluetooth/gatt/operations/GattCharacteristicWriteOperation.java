@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 
+import org.droidparts.Injector;
 import org.droidparts.util.L;
 
 import java.util.UUID;

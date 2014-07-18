@@ -9,10 +9,13 @@ import android.bluetooth.BluetoothProfile;
 import org.droidparts.Injector;
 import org.droidparts.util.L;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import no.nordicsemi.actuators.DisplayActuator;
 import no.nordicsemi.bluetooth.gatt.operations.GattOperation;
 
 public class GattManager {
@@ -20,11 +23,13 @@ public class GattManager {
     private ConcurrentLinkedQueue<GattOperation> mQueue;
     private ConcurrentHashMap<String, BluetoothGatt> mGatts;
     private GattOperation mCurrentOperation;
+    private HashMap<UUID, ArrayList<CharacteristicChangeListener>> mCharacteristicChangeListeners;
 
     public GattManager() {
         mQueue = new ConcurrentLinkedQueue<>();
         mGatts = new ConcurrentHashMap<>();
         mCurrentOperation = null;
+        mCharacteristicChangeListeners = new HashMap<>();
     }
 
     public synchronized void queue(GattOperation gattOperation) {
@@ -33,7 +38,6 @@ public class GattManager {
         if(mQueue.size() == 1) {
             drive();
         }
-
     }
 
     private void drive() {
@@ -92,6 +96,17 @@ public class GattManager {
                     setCurrentOperation(null);
                     drive();
                 }
+
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                    super.onCharacteristicChanged(gatt, characteristic);
+                    L.i("Characteristic " + characteristic.getUuid() + "was changed, device: " + device.getAddress());
+                    if(mCharacteristicChangeListeners.containsKey(characteristic.getUuid())) {
+                        for (CharacteristicChangeListener listener : mCharacteristicChangeListeners.get(characteristic.getUuid())) {
+                            listener.onCharacteristicChanged(characteristic);
+                        }
+                    }
+                }
             });
         }
     }
@@ -102,5 +117,12 @@ public class GattManager {
 
     public BluetoothGatt getGatt(BluetoothDevice device) {
         return mGatts.get(device);
+    }
+
+    public void addCharacteristicChangeListener(UUID characteristicUuid, CharacteristicChangeListener characteristicChangeListener) {
+        if(!mCharacteristicChangeListeners.containsKey(characteristicUuid)) {
+            mCharacteristicChangeListeners.put(characteristicUuid, new ArrayList<CharacteristicChangeListener>());
+        }
+        mCharacteristicChangeListeners.get(characteristicUuid).add(characteristicChangeListener);
     }
 }
