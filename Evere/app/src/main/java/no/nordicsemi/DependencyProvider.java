@@ -8,6 +8,7 @@ import org.droidparts.AbstractDependencyProvider;
 import org.droidparts.net.http.RESTClient;
 import org.droidparts.persist.sql.AbstractDBOpenHelper;
 
+import no.nordicsemi.bluetooth.gatt.GattManager;
 import no.nordicsemi.db.ActionManager;
 import no.nordicsemi.db.DBOpenHelper;
 import no.nordicsemi.db.PuckManager;
@@ -21,6 +22,7 @@ public class DependencyProvider extends AbstractDependencyProvider{
     private final RESTClient mRESTClient;
     private final LocationManager mLocationManager;
     private final Context mContext;
+    private final GattManager mGattManager;
 
     public DependencyProvider(Context ctx) {
         super(ctx);
@@ -28,6 +30,7 @@ public class DependencyProvider extends AbstractDependencyProvider{
         mIBeaconManager = IBeaconManager.getInstanceForApplication(ctx);
         mRESTClient = new RESTClient(ctx);
         mLocationManager = new LocationManager();
+        mGattManager = new GattManager();
         mContext = ctx;
     }
 
@@ -62,5 +65,9 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public LocationManager getLocationManager() {
         return mLocationManager;
+    }
+
+    public GattManager getGattManager() {
+        return mGattManager;
     }
 }

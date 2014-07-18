@@ -3,10 +3,8 @@ package no.nordicsemi.actuators;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
 import org.droidparts.annotation.inject.InjectDependency;
@@ -15,10 +13,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.LinkedList;
+import java.util.UUID;
 
 import no.nordicsemi.R;
-import no.nordicsemi.bluetooth.GattCharacteristicWriteOperation;
+import no.nordicsemi.bluetooth.gatt.GattManager;
+import no.nordicsemi.bluetooth.gatt.operations.GattCharacteristicWriteOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattDisconnectOperation;
 import no.nordicsemi.db.PuckManager;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.utils.NumberUtils;
@@ -32,24 +32,21 @@ public abstract class PuckActuator extends Actuator {
     @InjectDependency
     PuckManager mPuckManager;
 
-    LinkedList<GattCharacteristicWriteOperation> writeQueue;
+    @InjectDependency
+    GattManager mGattManager;
 
     @Override
     abstract public int getId();
 
-    public PuckActuator() {
-        super();
-        writeQueue = new LinkedList<>();
+    public void write(BluetoothDevice device, UUID service, UUID characteristic, byte[] value) {
+        mGattManager.queue(new GattCharacteristicWriteOperation(device, service, characteristic, value));
     }
 
-    public void write(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
-        writeQueue.add(new GattCharacteristicWriteOperation(gatt, characteristic, value));
-        if (writeQueue.size() == 1) {
-            driveWriteQueue();
-        }
+    public void disconnect(BluetoothDevice device) {
+        mGattManager .queue(new GattDisconnectOperation(device));
     }
 
-    public void writeInt16Array(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, JSONArray integers) {
+    public void writeInt16Array(BluetoothDevice device, UUID service, UUID characteristic, JSONArray integers) {
         if (integers.length() > 10) {
             throw new IllegalArgumentException(mContext.getString(R.string.error_too_many_integers));
         }
@@ -65,17 +62,7 @@ public abstract class PuckActuator extends Actuator {
                 L.e(e);
             }
         }
-        write(gatt, characteristic, array);
-    }
-
-    private void driveWriteQueue() {
-        if(!writeQueue.isEmpty()) {
-            GattCharacteristicWriteOperation write = writeQueue.peek();
-            BluetoothGatt gatt = write.getGatt();
-            BluetoothGattCharacteristic nextWriteCharacteristic = write.getCharacteristic();
-            nextWriteCharacteristic.setValue(write.getValue());
-            gatt.writeCharacteristic(nextWriteCharacteristic);
-        }
+        write(device, service, characteristic, array);
     }
 
     @Override
@@ -88,34 +75,8 @@ public abstract class PuckActuator extends Actuator {
         BluetoothAdapter bluetoothAdapter = ((BluetoothManager) mContext.getSystemService
                 (Context.BLUETOOTH_SERVICE)).getAdapter();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
-        device.connectGatt(mContext, false, new BluetoothGattCallback() {
-            @Override
-            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                super.onConnectionStateChange(gatt, status, newState);
-
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    gatt.discoverServices();
-                }
-            }
-
-            @Override
-            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicWrite(gatt, characteristic, status);
-                writeQueue.removeFirst();
-                driveWriteQueue();
-            }
-
-            @Override
-            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                super.onServicesDiscovered(gatt, status);
-                try {
-                    actuateOnPuck(gatt, arguments);
-                } catch (JSONException e) {
-                    L.e(e);
-                }
-            }
-        });
+        actuateOnPuck(device, arguments);
     }
 
-    public abstract void actuateOnPuck(BluetoothGatt bluetoothGatt, JSONObject arguments) throws JSONException;
+    public abstract void actuateOnPuck(BluetoothDevice device, JSONObject arguments) throws JSONException;
 }

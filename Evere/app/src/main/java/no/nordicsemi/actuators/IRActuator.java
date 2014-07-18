@@ -1,6 +1,7 @@
 package no.nordicsemi.actuators;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -106,36 +107,28 @@ public class IRActuator extends PuckActuator {
     }
 
     @Override
-    public void actuateOnPuck(BluetoothGatt gatt, JSONObject arguments) throws JSONException {
-        BluetoothGattService service = gatt.getService(GattServices.IR_SERVICE_UUID);
-        BluetoothGattCharacteristic characteristic;
+    public void actuateOnPuck(BluetoothDevice device, JSONObject arguments) throws JSONException {
         if(arguments.has(ARGUMENT_HEADER)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_HEADER_UUID);
-            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_HEADER));
+            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_HEADER_UUID, arguments.getJSONArray(ARGUMENT_HEADER));
         }
         if(arguments.has(ARGUMENT_ONE)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_ONE_UUID);
-            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ONE));
+            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_ONE_UUID, arguments.getJSONArray(ARGUMENT_ONE));
         }
         if(arguments.has(ARGUMENT_ZERO)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_ZERO_UUID);
-            writeInt16Array(gatt, characteristic, arguments.getJSONArray(ARGUMENT_ZERO));
+            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_ZERO_UUID, arguments.getJSONArray(ARGUMENT_ZERO));
         }
         if(arguments.has(ARGUMENT_PTRAIL)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_PTRAIL_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray("" + arguments.get(ARGUMENT_PTRAIL), 10, 2);
-            write(gatt, characteristic, array);
+            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_PTRAIL_UUID, array);
         }
         if(arguments.has(ARGUMENT_PREDATA)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_PREDATA_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_PREDATA), 16, 2);
-            write(gatt, characteristic, array);
+            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_PREDATA_UUID, array);
         }
         if(arguments.has(ARGUMENT_CODE)) {
-            characteristic = service.getCharacteristic(CHARACTERISTIC_CODE_UUID);
             byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_CODE), 16, 2);
-            write(gatt, characteristic, array);
-
+            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_CODE_UUID, array);
         }
+        disconnect(device);
     }
 }
