@@ -7,6 +7,11 @@
         android:orderInCategory="100"
         android:showAsAction="never" />
 
+    <item android:id="@+id/action_trigger"
+        android:title="trigger"
+        android:orderInCategory="50"
+        android:showAsAction="never" />
+
     <item android:id="@+id/action_remove_puck"
         android:title="@string/action_remove_puck"
         android:orderInCategory="20"

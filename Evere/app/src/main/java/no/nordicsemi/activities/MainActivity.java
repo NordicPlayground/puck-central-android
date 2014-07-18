@@ -473,6 +473,18 @@ public class MainActivity extends Activity {
                 selectDeviceDialog();
                 return true;
 
+            case R.id.action_trigger:
+                final ArrayList<Puck> pucks = mPuckManager.getAll();
+                if(pucks.size() > 0) {
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            Trigger.trigger(pucks.get(0), Trigger.TRIGGER_ENTER_ZONE);
+                        }
+                    }.start();
+                }
+                return true;
+
             case R.id.action_remove_puck:
                 removePuck();
                 return true;
