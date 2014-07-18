@@ -26,5 +26,6 @@
     <string name="error_too_many_integers">Too many integers at once, can only send 20 bytes at a time.</string>
     <string name="puck_remove">Chose puck to remove</string>
     <string name="action_remove_puck">Remove puck</string>
+    <string name="text_to_display">Text to display</string>
 
 </resources>

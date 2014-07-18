@@ -19,6 +19,7 @@ public abstract class GattServices {
     public static final UUID LOCATION_SERVICE_UUID = UUIDUtils.stringToUUID("bftj location   ");
     public static final UUID IR_SERVICE_UUID =  UUIDUtils.stringToUUID("bftj ir         ");
     public static final UUID CUBE_SERVICE_UUID = UUIDUtils.stringToUUID("bftj cube       ");
+    public static final UUID DISPLAY_SERVICE_UUID = UUIDUtils.stringToUUID("bftj display    ");
 
     public static final UUID CUBE_CHARACTERISTIC_DIRECTION_UUID
             = UUIDUtils.stringToUUID("bftj cube dirctn");
