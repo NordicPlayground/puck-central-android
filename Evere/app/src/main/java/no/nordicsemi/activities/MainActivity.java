@@ -7,7 +7,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -40,10 +39,12 @@ import java.util.UUID;
 import no.nordicsemi.R;
 import no.nordicsemi.actuators.Actuator;
 import no.nordicsemi.adapters.RuleAdapter;
+import no.nordicsemi.bluetooth.gatt.CharacteristicChangeListener;
+import no.nordicsemi.bluetooth.gatt.GattManager;
+import no.nordicsemi.bluetooth.gatt.operations.GattSetNotificationOperation;
 import no.nordicsemi.db.ActionManager;
 import no.nordicsemi.db.PuckManager;
 import no.nordicsemi.db.RuleManager;
-import no.nordicsemi.enums.CubeOrientation;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
@@ -67,6 +68,9 @@ public class MainActivity extends Activity {
 
     @InjectDependency
     private PuckManager mPuckManager;
+
+    @InjectDependency
+    private GattManager mGattManager;
 
     private RuleAdapter mRuleAdapter;
 
@@ -123,83 +127,32 @@ public class MainActivity extends Activity {
                 (Context.BLUETOOTH_SERVICE)).getAdapter();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
 
-        // AutoConnect allows us to bind once, with BLE stack handling the rest for us.
-        device.connectGatt(this, true, new BluetoothGattCallback() {
-            @Override
-            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                super.onConnectionStateChange(gatt, status, newState);
-
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    L.e("Connected to %s (%s)", puck.getName(), puck.getAddress());
-                    gatt.discoverServices();
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    L.e("Disconnected from %s (%s)", puck.getName(), puck.getAddress());
-                }
-            }
-
-            @Override
-            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                super.onServicesDiscovered(gatt, status);
-
-                BluetoothGattCharacteristic directionCharacteristic = gatt
-                        .getService(GattServices.CUBE_SERVICE_UUID)
-                        .getCharacteristic(GattServices.CUBE_CHARACTERISTIC_DIRECTION_UUID);
-                gatt.setCharacteristicNotification(directionCharacteristic, true);
-
-                BluetoothGattDescriptor descriptor =
-                        directionCharacteristic.getDescriptor(
-                                GattServices.CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID);
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                gatt.writeDescriptor(descriptor);
-                L.e("Listener bound to %s (%s)", puck.getName(), puck.getAddress());
-            }
-
-            @Override
-            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                super.onCharacteristicChanged(gatt, characteristic);
-
-                final int idx = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                CubeOrientation orientation = CubeOrientation.values()[idx];
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this,
-                                puck.getName() + " rotation: " + idx,
-                                Toast.LENGTH_SHORT).show();
+        mGattManager.queue(new GattSetNotificationOperation(
+            device,
+            GattServices.CUBE_SERVICE_UUID,
+            GattServices.CUBE_CHARACTERISTIC_DIRECTION_UUID,
+            GattServices.CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID,
+            new CharacteristicChangeListener() {
+                @Override
+                public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic) {
+                    int orientation = characteristic.getValue()[0];
+                    final int UP = 0;
+                    final int DOWN = 1;
+                    final int LEFT = 2;
+                    final int RIGHT = 3;
+                    final int FRONT = 4;
+                    final int BACK = 5;
+                    switch(orientation) {
+                        case UP: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_UP); break;
+                        case DOWN: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_DOWN); break;
+                        case LEFT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_LEFT); break;
+                        case RIGHT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_RIGHT); break;
+                        case FRONT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_FRONT); break;
+                        case BACK: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK); break;
                     }
-                });
-
-                switch (orientation) {
-                    case UP:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_UP);
-                        break;
-
-                    case DOWN:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_DOWN);
-                        break;
-
-                    case LEFT:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_LEFT);
-                        break;
-
-                    case RIGHT:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_RIGHT);
-                        break;
-
-                    case FRONT:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_FRONT);
-                        break;
-
-                    case BACK:
-                        Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK);
-                        break;
-
-                    case UNDEFINED:
-                        break;
                 }
             }
-        });
+        ));
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
