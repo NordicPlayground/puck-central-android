@@ -74,6 +74,8 @@ public abstract class Actuator {
         actuators.put(actuator.getId(), actuator);
         actuator = new DisplayActuator();
         actuators.put(actuator.getId(), actuator);
+        actuator = new MusicVolumeActuator();
+        actuators.put(actuator.getId(), actuator);
         return actuators;
     }
 
