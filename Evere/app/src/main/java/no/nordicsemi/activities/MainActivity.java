@@ -302,6 +302,7 @@ public class MainActivity extends Activity {
                         gatt.discoverServices();
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         L.e("Link disconnected");
+                        gatt.close();
                     } else {
                         L.e("Received something else, ");
                     }
