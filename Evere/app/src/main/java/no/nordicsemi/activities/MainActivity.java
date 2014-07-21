@@ -12,6 +12,9 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,6 +25,7 @@ import android.widget.Toast;
 
 import com.radiusnetworks.ibeacon.IBeacon;
 
+import org.droidparts.Injector;
 import org.droidparts.activity.Activity;
 import org.droidparts.annotation.bus.ReceiveEvents;
 import org.droidparts.annotation.inject.InjectDependency;
@@ -135,6 +139,7 @@ public class MainActivity extends Activity {
             new CharacteristicChangeListener() {
                 @Override
                 public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic) {
+                    playDefaultNotificationSound();
                     int orientation = characteristic.getValue()[0];
                     final int UP = 0;
                     final int DOWN = 1;
@@ -150,6 +155,11 @@ public class MainActivity extends Activity {
                         case FRONT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_FRONT); break;
                         case BACK: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK); break;
                     }
+                }
+
+                private void playDefaultNotificationSound() {
+                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    RingtoneManager.getRingtone(Injector.getApplicationContext(), notification).play();
                 }
             }
         ));
