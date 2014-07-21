@@ -34,7 +34,7 @@ public class GattManager {
 
     public synchronized void queue(GattOperation gattOperation) {
         mQueue.add(gattOperation);
-        L.v("Queing Gatt operation, size will now become: " + mQueue.size());
+        L.v("Queueing Gatt operation, size will now become: " + mQueue.size());
         if(mQueue.size() == 1) {
             drive();
         }
