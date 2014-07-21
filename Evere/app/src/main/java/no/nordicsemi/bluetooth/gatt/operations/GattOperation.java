@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGatt;
 
 public abstract class GattOperation {
 
+    private static final int DEFAULT_TIMEOUT_IN_MILLIS = 10000;
     private BluetoothDevice mDevice;
 
     public GattOperation(BluetoothDevice device) {
@@ -16,4 +17,10 @@ public abstract class GattOperation {
     public BluetoothDevice getDevice() {
         return mDevice;
     }
+
+    public int getTimoutInMillis() {
+        return DEFAULT_TIMEOUT_IN_MILLIS;
+    }
+
+    public abstract boolean hasAvailableCompletionCallback();
 }

@@ -56,7 +56,7 @@ public class GattManager {
         setCurrentOperation(operation);
         final BluetoothDevice device = operation.getDevice();
         if(mGatts.containsKey(device.getAddress())) {
-            operation.execute(mGatts.get(device.getAddress()));
+            execute(mGatts.get(device.getAddress()), operation);
         } else {
             device.connectGatt(Injector.getApplicationContext(), true, new BluetoothGattCallback() {
                 @Override
@@ -86,7 +86,7 @@ public class GattManager {
                 public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                     super.onServicesDiscovered(gatt, status);
                     L.d("services discovered, status: " + status);
-                    operation.execute(gatt);
+                    execute(gatt, operation);
                 }
 
                 @Override
@@ -108,6 +108,14 @@ public class GattManager {
                     }
                 }
             });
+        }
+    }
+
+    private void execute(BluetoothGatt gatt, GattOperation operation) {
+        operation.execute(gatt);
+        if(!operation.hasAvailableCompletionCallback()) {
+            setCurrentOperation(null);
+            drive();
         }
     }
 

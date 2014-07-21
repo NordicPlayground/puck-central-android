@@ -25,8 +25,13 @@ public class GattCharacteristicWriteOperation extends GattOperation {
     @Override
     public void execute(BluetoothGatt gatt) {
         L.d("writing to " + mCharacteristic);
-        BluetoothGattCharacteristic chararcteristic = gatt.getService(mService).getCharacteristic(mCharacteristic);
-        chararcteristic.setValue(mValue);
-        gatt.writeCharacteristic(chararcteristic);
+        BluetoothGattCharacteristic characteristic = gatt.getService(mService).getCharacteristic(mCharacteristic);
+        characteristic.setValue(mValue);
+        gatt.writeCharacteristic(characteristic);
+    }
+
+    @Override
+    public boolean hasAvailableCompletionCallback() {
+        return true;
     }
 }

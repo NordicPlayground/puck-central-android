@@ -11,11 +11,11 @@ public class GattDisconnectOperation extends GattOperation {
 
     @Override
     public void execute(BluetoothGatt gatt) {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         gatt.disconnect();
+    }
+
+    @Override
+    public boolean hasAvailableCompletionCallback() {
+        return true;
     }
 }

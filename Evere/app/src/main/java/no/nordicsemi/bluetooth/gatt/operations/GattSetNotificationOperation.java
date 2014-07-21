@@ -48,4 +48,9 @@ public class GattSetNotificationOperation extends GattOperation {
         gatt.writeDescriptor(descriptor);
         mGattManager.addCharacteristicChangeListener(mCharacteristicUuid, mCharacteristicChangeListener);
     }
+
+    @Override
+    public boolean hasAvailableCompletionCallback() {
+        return false;
+    }
 }
