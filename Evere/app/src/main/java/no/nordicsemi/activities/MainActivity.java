@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
                     .BLUETOOTH_SERVICE)).getAdapter();
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mPuck.getAddress());
             L.e("Starting service discovery");
-            device.connectGatt(MainActivity.this, false, new BluetoothGattCallback() {
+            device.connectGatt(MainActivity.this, true, new BluetoothGattCallback() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                     super.onConnectionStateChange(gatt, status, newState);

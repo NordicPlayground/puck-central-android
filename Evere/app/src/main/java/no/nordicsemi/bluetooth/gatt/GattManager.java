@@ -58,7 +58,7 @@ public class GattManager {
         if(mGatts.containsKey(device.getAddress())) {
             operation.execute(mGatts.get(device.getAddress()));
         } else {
-            device.connectGatt(Injector.getApplicationContext(), false, new BluetoothGattCallback() {
+            device.connectGatt(Injector.getApplicationContext(), true, new BluetoothGattCallback() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                     super.onConnectionStateChange(gatt, status, newState);
