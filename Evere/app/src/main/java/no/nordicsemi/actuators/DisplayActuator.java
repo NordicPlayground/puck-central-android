@@ -100,7 +100,8 @@ public class DisplayActuator extends PuckActuator {
 
         write(device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{beginCommand});
         byte[] ePaperFormat = bitmapToEPaperFormat(bitmap, section);
-        byte[] payload = LZCompression.compress(ePaperFormat);
+        byte[] unpaddedPayload = LZCompression.compress(ePaperFormat);
+        byte[] payload = padPayload(unpaddedPayload);
         for(int i = 0; i < payload.length; i += 20) {
             byte[] value = new byte[20];
             System.arraycopy(payload, i, value, 0, Math.min(20, payload.length - i));
@@ -108,6 +109,25 @@ public class DisplayActuator extends PuckActuator {
         }
         write(device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{endCommand});
         disconnect(device);
+    }
+
+    private byte[] padPayload(byte[] unpaddedPayload) {
+        int paddingLength = unpaddedPayload.length % 20 == 0
+                ? 0
+                : 20 - unpaddedPayload.length % 20;
+        byte[] payload = new byte[unpaddedPayload.length + paddingLength];
+        for(int i = 1; i < unpaddedPayload.length - 1; i++) {
+            if(unpaddedPayload[i] == unpaddedPayload[0] && unpaddedPayload[i + 1] != 0) {
+                i++;
+                System.arraycopy(unpaddedPayload, 0, payload, 0, i);
+                for(int j = 0; j < paddingLength; j++) {
+                    payload[i + j] = (byte) 0x80;
+                }
+                System.arraycopy(unpaddedPayload, i, payload, i + paddingLength, unpaddedPayload.length - i);
+                break;
+            }
+        }
+        return payload;
     }
 
     private byte[] bitmapToEPaperFormat(Bitmap bitmap, ImageSection section) {
