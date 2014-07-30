@@ -43,7 +43,7 @@ public abstract class PuckActuator extends Actuator {
     }
 
     public void disconnect(BluetoothDevice device) {
-        mGattManager .queue(new GattDisconnectOperation(device));
+        mGattManager.queue(new GattDisconnectOperation(device));
     }
 
     public void writeInt16Array(BluetoothDevice device, UUID service, UUID characteristic, JSONArray integers) {
