@@ -20,6 +20,10 @@ import org.json.JSONObject;
 import java.util.UUID;
 
 import no.nordicsemi.R;
+import no.nordicsemi.bluetooth.gatt.GattOperationBundle;
+import no.nordicsemi.bluetooth.gatt.operations.GattCharacteristicWriteOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattDisconnectOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattOperation;
 import no.nordicsemi.db.PuckManager;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
@@ -81,15 +85,17 @@ public class DisplayActuator extends PuckActuator {
     @Override
     public void actuateOnPuck(BluetoothDevice device, JSONObject arguments) throws JSONException {
         Bitmap bitmap = render(arguments.getString(ARGUMENT_TEXT));
-        writeImage(device, bitmap, ImageSection.UPPER);
-        writeImage(device, bitmap, ImageSection.LOWER);
+        GattOperationBundle bundle = new GattOperationBundle();
+        writeImage(device, bundle, bitmap, ImageSection.UPPER);
+        writeImage(device, bundle, bitmap, ImageSection.LOWER);
+        mGattManager.queue(bundle);
     }
 
     private enum ImageSection {
         LOWER, UPPER
     }
 
-    private void writeImage(BluetoothDevice device, Bitmap bitmap, ImageSection section) {
+    private void writeImage(BluetoothDevice device, GattOperationBundle bundle, Bitmap bitmap, ImageSection section) {
 
         byte beginCommand = section == ImageSection.UPPER
                           ? COMMAND_BEGIN_IMAGE_UPPER
@@ -98,17 +104,20 @@ public class DisplayActuator extends PuckActuator {
                         ? COMMAND_END_IMAGE_UPPER
                         : COMMAND_END_IMAGE_LOWER;
 
-        write(device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{beginCommand});
+        bundle.addOperation(new GattCharacteristicWriteOperation(
+            device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{beginCommand}));
         byte[] ePaperFormat = bitmapToEPaperFormat(bitmap, section);
         byte[] unpaddedPayload = LZCompression.compress(ePaperFormat);
         byte[] payload = padPayload(unpaddedPayload);
         for(int i = 0; i < payload.length; i += 20) {
             byte[] value = new byte[20];
             System.arraycopy(payload, i, value, 0, Math.min(20, payload.length - i));
-            write(device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_DATA_UUID, value);
+            bundle.addOperation(new GattCharacteristicWriteOperation(
+                device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_DATA_UUID, value));
         }
-        write(device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{endCommand});
-        disconnect(device);
+        bundle.addOperation(new GattCharacteristicWriteOperation(
+            device, SERVICE_DISPLAY_UUID, CHARACTERISTIC_COMMAND_UUID, new byte[]{endCommand}));
+        bundle.addOperation(new GattDisconnectOperation(device));
     }
 
     private byte[] padPayload(byte[] unpaddedPayload) {

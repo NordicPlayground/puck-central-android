@@ -1,17 +1,19 @@
 package no.nordicsemi.bluetooth.gatt;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothProfile;
+import android.os.AsyncTask;
 
 import org.droidparts.Injector;
 import org.droidparts.util.L;
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Observable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,6 +26,7 @@ public class GattManager {
     private ConcurrentHashMap<String, BluetoothGatt> mGatts;
     private GattOperation mCurrentOperation;
     private HashMap<UUID, ArrayList<CharacteristicChangeListener>> mCharacteristicChangeListeners;
+    private AsyncTask<Void, Void, Void> mCurrentOperationTimeout;
 
     public GattManager() {
         mQueue = new ConcurrentLinkedQueue<>();
@@ -32,15 +35,25 @@ public class GattManager {
         mCharacteristicChangeListeners = new HashMap<>();
     }
 
+    public synchronized void cancelCurrentOperationBundle() {
+        L.v("Cancelling current operation. Queue size before: " + mQueue.size());
+        if(mCurrentOperation != null && mCurrentOperation.getBundle() != null) {
+            for(GattOperation op : mCurrentOperation.getBundle().getOperations()) {
+                mQueue.remove(op);
+            }
+        }
+        L.v("Queue size after: " + mQueue.size());
+        mCurrentOperation = null;
+        drive();
+    }
+
     public synchronized void queue(GattOperation gattOperation) {
         mQueue.add(gattOperation);
         L.v("Queueing Gatt operation, size will now become: " + mQueue.size());
-        if(mQueue.size() == 1) {
-            drive();
-        }
+        drive();
     }
 
-    private void drive() {
+    private synchronized void drive() {
         if(mCurrentOperation != null) {
             L.e("tried to drive, but currentOperation was not null, " + mCurrentOperation);
             return;
@@ -54,6 +67,36 @@ public class GattManager {
         final GattOperation operation = mQueue.poll();
         L.v("Driving Gatt queue, size will now become: " + mQueue.size());
         setCurrentOperation(operation);
+
+
+        if(mCurrentOperationTimeout != null) {
+            mCurrentOperationTimeout.cancel(true);
+        }
+        mCurrentOperationTimeout = new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected synchronized Void doInBackground(Void... voids) {
+                try {
+                    L.v("Starting to do a background timeout");
+                    wait(operation.getTimoutInMillis());
+                } catch (InterruptedException e) {
+                    L.v("was interrupted out of the timeout");
+                }
+                if(isCancelled()) {
+                    L.v("The timeout was cancelled, so we do nothing.");
+                    return null;
+                }
+                L.v("Timeout ran to completion, time to cancel the entire operation bundle. Abort, abort!");
+                cancelCurrentOperationBundle();
+                return null;
+            }
+
+            @Override
+            protected synchronized void onCancelled() {
+                super.onCancelled();
+                notify();
+            }
+        }.execute();
+
         final BluetoothDevice device = operation.getDevice();
         if(mGatts.containsKey(device.getAddress())) {
             execute(mGatts.get(device.getAddress()), operation);
@@ -112,6 +155,9 @@ public class GattManager {
     }
 
     private void execute(BluetoothGatt gatt, GattOperation operation) {
+        if(operation != mCurrentOperation) {
+            return;
+        }
         operation.execute(gatt);
         if(!operation.hasAvailableCompletionCallback()) {
             setCurrentOperation(null);
@@ -132,5 +178,11 @@ public class GattManager {
             mCharacteristicChangeListeners.put(characteristicUuid, new ArrayList<CharacteristicChangeListener>());
         }
         mCharacteristicChangeListeners.get(characteristicUuid).add(characteristicChangeListener);
+    }
+
+    public void queue(GattOperationBundle bundle) {
+        for(GattOperation operation : bundle.getOperations()) {
+            queue(operation);
+        }
     }
 }

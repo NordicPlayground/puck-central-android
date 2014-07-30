@@ -3,10 +3,13 @@ package no.nordicsemi.bluetooth.gatt.operations;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 
+import no.nordicsemi.bluetooth.gatt.GattOperationBundle;
+
 public abstract class GattOperation {
 
     private static final int DEFAULT_TIMEOUT_IN_MILLIS = 10000;
     private BluetoothDevice mDevice;
+    private GattOperationBundle mBundle;
 
     public GattOperation(BluetoothDevice device) {
         mDevice = device;
@@ -23,4 +26,12 @@ public abstract class GattOperation {
     }
 
     public abstract boolean hasAvailableCompletionCallback();
+
+    public GattOperationBundle getBundle() {
+        return mBundle;
+    }
+
+    public void setBundle(GattOperationBundle bundle) {
+        mBundle = bundle;
+    }
 }
