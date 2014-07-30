@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothProfile;
 import android.os.AsyncTask;
 
@@ -18,6 +19,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import no.nordicsemi.bluetooth.gatt.operations.GattCharacteristicReadOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattCharacteristicWriteOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattDescriptorReadOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattDescriptorWriteOperation;
 import no.nordicsemi.bluetooth.gatt.operations.GattOperation;
 
 public class GattManager {
@@ -123,6 +128,29 @@ public class GattManager {
                         gatt.close();
                         drive();
                     }
+                }
+
+                @Override
+                public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+                    super.onDescriptorRead(gatt, descriptor, status);
+                    ((GattDescriptorReadOperation) mCurrentOperation).onRead(descriptor);
+                    setCurrentOperation(null);
+                    drive();
+                }
+
+                @Override
+                public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+                    super.onDescriptorWrite(gatt, descriptor, status);
+                    setCurrentOperation(null);
+                    drive();
+                }
+
+                @Override
+                public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                    super.onCharacteristicRead(gatt, characteristic, status);
+                    ((GattCharacteristicReadOperation) mCurrentOperation).onRead(characteristic);
+                    setCurrentOperation(null);
+                    drive();
                 }
 
                 @Override
