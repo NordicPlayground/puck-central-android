@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.UUID;
 
 import no.nordicsemi.R;
+import no.nordicsemi.bluetooth.gatt.GattOperationBundle;
+import no.nordicsemi.bluetooth.gatt.operations.GattCharacteristicWriteOperation;
+import no.nordicsemi.bluetooth.gatt.operations.GattDisconnectOperation;
 import no.nordicsemi.models.Action;
 import no.nordicsemi.models.Puck;
 import no.nordicsemi.models.Rule;
@@ -31,20 +34,15 @@ import no.nordicsemi.utils.UUIDUtils;
 
 public class IRActuator extends PuckActuator {
 
-    public static final String ARGUMENT_HEADER = "header";
-    public static final String ARGUMENT_ONE = "one";
-    public static final String ARGUMENT_ZERO = "zero";
-    public static final String ARGUMENT_PTRAIL = "ptrail";
-    public static final String ARGUMENT_PREDATA = "predata";
     public static final String ARGUMENT_CODE = "code";
 
     public static final String CODE = "Remote control code";
-    public static final UUID CHARACTERISTIC_HEADER_UUID = UUIDUtils.stringToUUID("bftj ir header  ");
-    public static final UUID CHARACTERISTIC_ONE_UUID = UUIDUtils.stringToUUID("bftj ir one     ");
-    public static final UUID CHARACTERISTIC_ZERO_UUID = UUIDUtils.stringToUUID("bftj ir zero    ");
-    public static final UUID CHARACTERISTIC_PTRAIL_UUID = UUIDUtils.stringToUUID("bftj ir ptrail  ");
-    public static final UUID CHARACTERISTIC_PREDATA_UUID = UUIDUtils.stringToUUID("bftj ir predata ");
-    public static final UUID CHARACTERISTIC_CODE_UUID = UUIDUtils.stringToUUID("bftj ir code    ");
+    public static final UUID CHARACTERISTIC_COMMAND_UUID = UUIDUtils.stringToUUID("bftj ir command ");
+    public static final UUID CHARACTERISTIC_DATA_UUID = UUIDUtils.stringToUUID("bftj ir data    ");
+    public static final UUID CHARACTERISTIC_PERIOD_UUID = UUIDUtils.stringToUUID("bftj ir period  ");
+
+    private static final byte COMMAND_BEGIN_CODE_TRANSMISSION = 0;
+    private static final byte COMMAND_END_CODE_TRANSMISSION = 1;
 
     @Override
     public String getDescription() {
@@ -90,11 +88,6 @@ public class IRActuator extends PuckActuator {
                                 IRActuator.ARGUMENT_UUID, puck.getProximityUUID(),
                                 IRActuator.ARGUMENT_MAJOR, puck.getMajor(),
                                 IRActuator.ARGUMENT_MINOR, puck.getMinor(),
-                                IRActuator.ARGUMENT_HEADER, new int[]{9000, 4500},
-                                IRActuator.ARGUMENT_ONE, new int[]{560, 1680},
-                                IRActuator.ARGUMENT_ZERO, new int[]{560, 560},
-                                IRActuator.ARGUMENT_PTRAIL, 560,
-                                IRActuator.ARGUMENT_PREDATA, "E0E0",
                                 IRActuator.ARGUMENT_CODE, editText1.getText().toString());
 
                         action.setArguments(arguments);
@@ -108,27 +101,55 @@ public class IRActuator extends PuckActuator {
 
     @Override
     public void actuateOnPuck(BluetoothDevice device, JSONObject arguments) throws JSONException {
-        if(arguments.has(ARGUMENT_HEADER)) {
-            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_HEADER_UUID, arguments.getJSONArray(ARGUMENT_HEADER));
+        GattOperationBundle bundle = new GattOperationBundle();
+        bundle.addOperation(new GattCharacteristicWriteOperation(
+                device,
+                GattServices.IR_SERVICE_UUID,
+                CHARACTERISTIC_PERIOD_UUID,
+                new byte[]{ 26 } ));
+        bundle.addOperation(new GattCharacteristicWriteOperation(
+                device,
+                GattServices.IR_SERVICE_UUID,
+                CHARACTERISTIC_COMMAND_UUID,
+                new byte[] { COMMAND_BEGIN_CODE_TRANSMISSION }));
+
+        int ON = 1260;
+        int E = 420;
+        int ZE = 420;
+        int RO = 1260;
+        int PAU = 0;
+        int SE = 20 * 1680;
+
+        int source[] = new int[] {
+                ON,E,    ON,E,    ON,E,    ON,E,
+                ZE,RO,   ZE,RO,   ZE,RO,   ZE,RO,
+                ZE,RO,   ON,E,    ZE,RO,   ZE,RO,
+
+                PAU,SE,
+
+                ON,E,    ON,E,    ON,E,    ON,E,
+                ZE,RO,   ZE,RO,   ZE,RO,   ZE,RO,
+                ZE,RO,   ON,E,    ZE,RO,   ZE,RO
+        };
+
+        assert(source.length % 10 == 0);
+
+        byte array[] = new byte[20];
+        for(int i = 0; i < source.length; i++) {
+            array[(i % 10) * 2] = (byte) ((source[i] & 0xFF00) >> 8);
+            array[(i % 10) * 2 + 1] = (byte) (source[i] & 0xFF);
+            if(i % 10 == 9) {
+                bundle.addOperation(new GattCharacteristicWriteOperation(device,
+                        GattServices.IR_SERVICE_UUID,
+                        CHARACTERISTIC_DATA_UUID, array));
+                array = new byte[20];
+            }
         }
-        if(arguments.has(ARGUMENT_ONE)) {
-            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_ONE_UUID, arguments.getJSONArray(ARGUMENT_ONE));
-        }
-        if(arguments.has(ARGUMENT_ZERO)) {
-            writeInt16Array(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_ZERO_UUID, arguments.getJSONArray(ARGUMENT_ZERO));
-        }
-        if(arguments.has(ARGUMENT_PTRAIL)) {
-            byte[] array = NumberUtils.stringNumberToByteArray("" + arguments.get(ARGUMENT_PTRAIL), 10, 2);
-            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_PTRAIL_UUID, array);
-        }
-        if(arguments.has(ARGUMENT_PREDATA)) {
-            byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_PREDATA), 16, 2);
-            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_PREDATA_UUID, array);
-        }
-        if(arguments.has(ARGUMENT_CODE)) {
-            byte[] array = NumberUtils.stringNumberToByteArray(arguments.getString(ARGUMENT_CODE), 16, 2);
-            write(device, GattServices.IR_SERVICE_UUID, CHARACTERISTIC_CODE_UUID, array);
-        }
-        disconnect(device);
+        bundle.addOperation(new GattCharacteristicWriteOperation(device,
+                GattServices.IR_SERVICE_UUID,
+                CHARACTERISTIC_COMMAND_UUID,
+                new byte[] { COMMAND_END_CODE_TRANSMISSION }));
+        bundle.addOperation(new GattDisconnectOperation(device));
+        mGattManager.queue(bundle);
     }
 }
