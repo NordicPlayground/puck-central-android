@@ -1,8 +1,14 @@
-## Evere
+# Puck Central
 
-Evere is the name of the Android app.
+Puck Central is the name of the Android app.
 
-## How to create your own actuator
+## Extending Puck Central
+
+### Creating your own actuator.
+
+Puck Central comes bundled with a number of actuators (located in no.nordicsemi.actuators), amongst others the Puck, Spotify, Http, and IR actuators.
+
+Creating your own actuator is straigtforward. 
 
 ## A note on the android bluetooth stack
 
