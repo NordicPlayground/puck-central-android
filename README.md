@@ -14,18 +14,16 @@ Contributions are gladly accepted, as the GattManager mainly contains the featur
 
 ### GattManager usage
 
-Usage is straigthforward. Instantiate a new gatt operation bundle, add add any needed gatt operations to it. Gatt operations are contained inside wrapper classes (GattCharacteristic[Operation]Operation) to allow queueing inside the GattManager. 
+Usage is straigthforward. Instantiate a new gatt operation bundle, add add any needed gatt operations to it. Gatt operations are contained inside wrapper classes (GattCharacteristic[Operation]Operation) to allow queueing inside the GattManager. Finally, queue the bundle in the GattManager, and it will ensure correct execution.
 
 ```
 GattOperationBundle bundle = new GattOperationBundle();
-```
 
-Add required operations:
-```
+bundle.addOperation(new GattCharacteristicWriteOperation(
+  someBluetoothDevice,
+  someGattServiceUUID,
+  someGattCharacteristicUUID,
+  new byte[] { VALUE_TO_WRITE }));
   
-```
-
-Finally, queue the bundle in the GattManager, and it will ensure correct execution.
-```
-gattManager.queue(bundle)
+gattManager.queue(bundle);
 ```
