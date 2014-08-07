@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Puck Central</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="puck_discovered_dialog_title">Location puck discovered</string>
+    <string name="rule_remove">Delete rule?</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
+    <string name="delete">Delete</string>
+    <string name="abort">Abort</string>
+    <string name="location_puck_name">Enter name for location puck</string>
+    <string name="example_location_puck_identifier">E20A39F473F54BC4A12F17D1AD07A961 – 1337 – 0F1C</string>
+    <string name="location_puck_identifier_legend">UUID - major - minor</string>
+    <string name="location_puck_already_paired">Location puck already paired with device</string>
+    <string name="action_add_rule">Add rule</string>
+    <string name="no_pucks_added">No pucks present. Add pucks first.</string>
+    <string name="select_puck">Select puck</string>
+    <string name="select_trigger">Select trigger</string>
+    <string name="select_actuator">Select actuator</string>
+    <string name="no_known_pucks_nearby">No known pucks nearby.</string>
+    <string name="currently_near_puck">Currently near:\n%s.</string>
+    <string name="dialog_actuator_edittext_1">EditText1</string>
+    <string name="dialog_actuator_edittext_2">EditText2</string>
+    <string name="error_too_many_integers">Too many integers at once, can only send 20 bytes at a time.</string>
+    <string name="puck_remove">Chose puck to remove</string>
+    <string name="action_remove_puck">Remove puck</string>
+    <string name="text_to_display">Text to display</string>
+
+</resources>
