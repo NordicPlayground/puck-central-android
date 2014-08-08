@@ -43,12 +43,17 @@ public class DisplayActuator extends PuckActuator {
 
     @Override
     public String describeActuator() {
-        return "Displays stuff on-screen";
+        return "Display an image on a Display Puck";
     }
 
     @Override
     public String describeArguments(JSONObject arguments) {
-        return "Writes an image to a Display Puck";
+        try {
+            return "Displays " + arguments.getString(ARGUMENT_TEXT) + " on a Display Puck";
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override

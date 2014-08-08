@@ -27,7 +27,7 @@ public class SpotifyActuator extends Actuator {
 
     @Override
     public String describeActuator() {
-        return "Play song from spotify";
+        return "Start a song from Spotify";
     }
 
     @Override

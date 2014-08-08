@@ -15,7 +15,7 @@ import no.nordicsemi.puckcentral.models.Rule;
 
 public class MusicVolumeActuator extends Actuator {
 
-    public static final String[] VOLUMES = new String[] {"Silent", "Maximum"};
+    public static final String[] VOLUMES = new String[] {"silent", "maximum"};
     public static final String ARGUMENT_AMOUNT = "amount";
 
     @InjectSystemService
@@ -23,13 +23,13 @@ public class MusicVolumeActuator extends Actuator {
 
     @Override
     public String describeActuator() {
-        return "Set music volume on phone.";
+        return "Set music volume level on phone.";
     }
 
     @Override
     public String describeArguments(JSONObject arguments) {
         try {
-            return "Sets music volume to " + arguments.get(ARGUMENT_AMOUNT);
+            return "Sets music volume level to " + arguments.get(ARGUMENT_AMOUNT);
         } catch (JSONException e) {
             e.printStackTrace();
             return "Invalid arguments for actuator";

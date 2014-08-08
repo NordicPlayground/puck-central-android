@@ -16,20 +16,20 @@ import no.nordicsemi.puckcentral.models.Rule;
 public class RingerActuator extends Actuator {
 
     public static final String MODE = "mode";
-    public static final String[] RINGER_MODES = new String[] { "Silent", "Vibrate", "Volume" };
+    public static final String[] RINGER_MODES = new String[] { "silent", "vibrate only", "volume on" };
 
     @InjectSystemService
     AudioManager mAudioManager;
 
     @Override
     public String describeActuator() {
-        return "Change phone state";
+        return "Set phone volume";
     }
 
     @Override
     public String describeArguments(JSONObject arguments) {
         try {
-            return "Sets phone to " + RINGER_MODES[arguments.getInt(MODE)];
+            return "Sets your phone to " + RINGER_MODES[arguments.getInt(MODE)];
         } catch (JSONException e) {
             e.printStackTrace();
             return "Invalid arguments for actuator";

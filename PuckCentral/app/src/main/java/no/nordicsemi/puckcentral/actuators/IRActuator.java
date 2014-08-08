@@ -42,13 +42,13 @@ public class IRActuator extends PuckActuator {
 
     @Override
     public String describeActuator() {
-        return "Turn on or off devices using IR";
+        return "Control peripherals using IR signals";
     }
 
     @Override
     public String describeArguments(JSONObject arguments) {
         try {
-            return "Sends IR signal to " + arguments.getString(ARGUMENT_UUID) + ":" + arguments.getString(ARGUMENT_MAJOR) + ":" + arguments.getString(ARGUMENT_MINOR);
+            return "Sends an IR signal to " + arguments.getString(ARGUMENT_UUID) + ":" + arguments.getString(ARGUMENT_MAJOR) + ":" + arguments.getString(ARGUMENT_MINOR);
         } catch (JSONException e) {
             e.printStackTrace();
             return "Invalid arguments for actuator";
