@@ -41,8 +41,18 @@ public class IRActuator extends PuckActuator {
     private static final byte COMMAND_END_CODE_TRANSMISSION = 1;
 
     @Override
-    public String getDescription() {
+    public String describeActuator() {
         return "Turn on or off devices using IR";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Sends IR signal to " + arguments.getString(ARGUMENT_UUID) + ":" + arguments.getString(ARGUMENT_MAJOR) + ":" + arguments.getString(ARGUMENT_MINOR);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -73,7 +83,7 @@ public class IRActuator extends PuckActuator {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

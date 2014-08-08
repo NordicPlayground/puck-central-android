@@ -26,7 +26,18 @@ public abstract class Actuator {
         mActuators = createActuatorList();
     }
 
-    public abstract String getDescription();
+    public abstract String describeActuator();
+
+    public String describeArguments(String arguments) {
+        try {
+            return describeArguments(new JSONObject(arguments));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
+    }
+
+    public abstract String describeArguments(JSONObject arguments);
 
     public abstract int getId();
 

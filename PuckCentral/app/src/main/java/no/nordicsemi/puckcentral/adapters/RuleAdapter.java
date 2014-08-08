@@ -49,9 +49,8 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
 
         for (Action action : actions) {
             View listItem = getLayoutInflater().inflate(android.R.layout.simple_list_item_2, null);
-            ((TextView) listItem.findViewById(android.R.id.text1)).setText(action.getActuator()
-                       .getDescription());
-            ((TextView) listItem.findViewById(android.R.id.text2)).setText(action.getArguments());
+            ((TextView) listItem.findViewById(android.R.id.text1)).setText(action.describeActuator());
+            ((TextView) listItem.findViewById(android.R.id.text2)).setText(action.describeArguments());
             holder.lvActuatorList.addView(listItem);
         }
 

@@ -29,8 +29,18 @@ public class HttpActuator extends Actuator {
     RESTClient mRestClient;
 
     @Override
-    public String getDescription() {
+    public String describeActuator() {
         return "Post data to http endpoint";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Posts " + arguments.getString(DATA) + " to " + arguments.getString(URL);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -67,7 +77,7 @@ public class HttpActuator extends Actuator {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

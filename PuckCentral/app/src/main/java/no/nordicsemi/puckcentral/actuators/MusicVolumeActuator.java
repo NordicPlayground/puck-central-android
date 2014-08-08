@@ -22,8 +22,18 @@ public class MusicVolumeActuator extends Actuator {
     AudioManager mAudioManager;
 
     @Override
-    public String getDescription() {
+    public String describeActuator() {
         return "Set music volume on phone.";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Sets music volume to " + arguments.get(ARGUMENT_AMOUNT);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -41,7 +51,7 @@ public class MusicVolumeActuator extends Actuator {
     @Override
     public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule, final ActuatorDialogFinishListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(getDescription());
+        builder.setTitle(describeActuator());
         builder.setItems(VOLUMES, new DialogInterface.OnClickListener() {
 
             @Override

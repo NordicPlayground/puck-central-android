@@ -384,7 +384,7 @@ public class MainActivity extends Activity {
         final ArrayList<Actuator> actuators = Actuator.getActuators();
         String[] actuatorDescriptions = new String[actuators.size()];
         for (int i=0; i< actuators.size(); i++) {
-            actuatorDescriptions[i] = actuators.get(i).getDescription();
+            actuatorDescriptions[i] = actuators.get(i).describeActuator();
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)

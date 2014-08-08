@@ -22,8 +22,18 @@ public class RingerActuator extends Actuator {
     AudioManager mAudioManager;
 
     @Override
-    public String getDescription() {
+    public String describeActuator() {
         return "Change phone state";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Sets phone to " + RINGER_MODES[arguments.getInt(MODE)];
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -44,7 +54,7 @@ public class RingerActuator extends Actuator {
     public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule,
                                          final ActuatorDialogFinishListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setItems(RINGER_MODES, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

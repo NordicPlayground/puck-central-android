@@ -42,8 +42,13 @@ public class DisplayActuator extends PuckActuator {
     private static final byte COMMAND_END_IMAGE_LOWER = 3;
 
     @Override
-    public String getDescription() {
+    public String describeActuator() {
         return "Displays stuff on-screen";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        return "Writes an image to a Display Puck";
     }
 
     @Override
@@ -61,7 +66,7 @@ public class DisplayActuator extends PuckActuator {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
