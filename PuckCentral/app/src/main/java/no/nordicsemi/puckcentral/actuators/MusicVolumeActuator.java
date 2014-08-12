@@ -23,7 +23,7 @@ public class MusicVolumeActuator extends Actuator {
 
     @Override
     public String describeActuator() {
-        return "Set music volume level on phone.";
+        return "Music Volume Actuator";
     }
 
     @Override

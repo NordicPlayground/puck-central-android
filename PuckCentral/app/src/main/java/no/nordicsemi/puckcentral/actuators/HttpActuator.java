@@ -30,7 +30,7 @@ public class HttpActuator extends Actuator {
 
     @Override
     public String describeActuator() {
-        return "Post data to a website";
+        return "HTTP Actuator";
     }
 
     @Override

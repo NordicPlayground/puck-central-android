@@ -42,7 +42,7 @@ public class IRActuator extends PuckActuator {
 
     @Override
     public String describeActuator() {
-        return "Control peripherals using IR signals";
+        return "IR Actuator";
     }
 
     @Override

@@ -37,7 +37,7 @@ public class RuleAdapter2 extends EntityCursorAdapter<Rule> {
         StringBuilder sb = new StringBuilder();
         for (Action action : rule.getActions()) {
             sb.append(action.describeActuator());
-            sb.append(" : ");
+            sb.append(": ");
             sb.append(action.describeArguments());
             sb.append("\n");
         }

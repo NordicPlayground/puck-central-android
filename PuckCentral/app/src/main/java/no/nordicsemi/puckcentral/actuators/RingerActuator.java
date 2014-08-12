@@ -23,7 +23,7 @@ public class RingerActuator extends Actuator {
 
     @Override
     public String describeActuator() {
-        return "Set phone volume";
+        return "Phone Volume Actuator";
     }
 
     @Override
