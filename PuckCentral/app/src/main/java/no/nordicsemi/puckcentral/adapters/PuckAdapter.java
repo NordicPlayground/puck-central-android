@@ -54,7 +54,7 @@ public class PuckAdapter extends EntityCursorAdapter<Puck> {
             @Override
             public void onClick(View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                        .setTitle(R.string.rule_remove)
+                        .setTitle(R.string.action_remove_puck)
                         .setPositiveButton(context.getString(R.string.delete), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
