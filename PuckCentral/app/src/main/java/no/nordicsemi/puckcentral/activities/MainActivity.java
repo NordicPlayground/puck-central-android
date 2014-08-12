@@ -33,7 +33,6 @@ import org.droidparts.concurrent.task.AsyncTaskResultListener;
 import org.droidparts.concurrent.task.SimpleAsyncTask;
 import org.droidparts.util.L;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -188,34 +187,6 @@ public class MainActivity extends Activity {
                     }
                 })
                 .setNegativeButton(getString(R.string.abort), null);
-        builder.create().show();
-    }
-
-    public void removePuck() {
-        final List<Puck> puckList = mPuckManager.getAll();
-        if (puckList.size() == 0) {
-            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        List<String> puckNames = new ArrayList<>();
-        for (Puck puck : puckList) {
-            puckNames.add(puck.getName());
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.puck_remove))
-                .setItems(puckNames.toArray(new CharSequence[puckNames.size()]), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Puck puck = puckList.get(i);
-                        mRuleManager.deteRulesWithPuckId(puck.id);
-                        //TODO FIX: mRuleAdapter.requeryData();
-                        mPuckManager.delete(puck.id);
-                    }
-                })
-                .setNegativeButton(getString(R.string.abort), null);
-
         builder.create().show();
     }
 
@@ -453,10 +424,6 @@ public class MainActivity extends Activity {
                         }
                     }.start();
                 }
-                return true;
-
-            case R.id.action_remove_puck:
-                removePuck();
                 return true;
 
             default:

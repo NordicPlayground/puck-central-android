@@ -48,13 +48,6 @@ public class RuleManager extends EntityManager<Rule> {
         }
     }
 
-    public void deteRulesWithPuckId(long id) {
-        List<Rule> toDelete = readAll(select().where(DB.Column.PUCK, Is.EQUAL, id));
-        for (Rule rule : toDelete) {
-            super.delete(rule.id);
-        }
-    }
-
     public void createOrExtendExisting(Rule rule) {
         List<Rule> rules = getRulesForPuckAndTrigger(rule.getPuck(), rule.getTrigger());
         if (rules.size() > 0) {
