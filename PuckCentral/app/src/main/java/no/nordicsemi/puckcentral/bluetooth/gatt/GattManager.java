@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothProfile;
 import android.os.AsyncTask;
 
 import org.droidparts.Injector;
+import org.droidparts.bus.EventBus;
 import org.droidparts.util.L;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattCharacteristicReadOperation;
 import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattDescriptorReadOperation;
 import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattOperation;
+import no.nordicsemi.puckcentral.triggers.Trigger;
 
 public class GattManager {
 
@@ -107,18 +109,24 @@ public class GattManager {
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                     super.onConnectionStateChange(gatt, status, newState);
 
+                    EventBus.postEvent(Trigger.TRIGGER_CONNECTION_STATE_CHANGED,
+                            new ConnectionStateChangedBundle(
+                                    device.getAddress(),
+                                    newState));
+
                     if(status == 133) {
                         L.e("Got the status 133 bug, closing gatt");
                         gatt.close();
                         mGatts.remove(device.getAddress());
                         return;
                     }
+
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
-                        L.d("Gatt connected to device " + device.getAddress());
+                        L.i("Gatt connected to device " + device.getAddress());
                         mGatts.put(device.getAddress(), gatt);
                         gatt.discoverServices();
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        L.d("Gatt not connected to device " + device.getAddress() + ", newState: " + newState);
+                        L.i("Disconnected from gatt server " + device.getAddress() + ", newState: " + newState);
                         mGatts.remove(device.getAddress());
                         setCurrentOperation(null);
                         gatt.close();
@@ -207,6 +215,16 @@ public class GattManager {
     public void queue(GattOperationBundle bundle) {
         for(GattOperation operation : bundle.getOperations()) {
             queue(operation);
+        }
+    }
+
+    public class ConnectionStateChangedBundle {
+        public final int mNewState;
+        public final String mAddress;
+
+        public ConnectionStateChangedBundle(String address, int newState) {
+            mAddress = address;
+            mNewState = newState;
         }
     }
 }

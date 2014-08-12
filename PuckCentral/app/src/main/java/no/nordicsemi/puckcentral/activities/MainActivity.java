@@ -60,9 +60,6 @@ public class MainActivity extends Activity {
     @InjectView(id = R.id.lvPucks)
     ListView mLvPucks;
 
-    @InjectView(id = R.id.tvClosestPuck)
-    TextView mClosestPuck;
-
     @InjectDependency
     private ActionManager mActionManager;
 
@@ -127,7 +124,7 @@ public class MainActivity extends Activity {
     }
 
     public void bindBluetoothListener(final Puck puck) {
-        L.e("Binding GATT callback to %s (%s)", puck.getName(), puck.getAddress());
+        L.i("Binding GATT callback to %s (%s)", puck.getName(), puck.getAddress());
         BluetoothAdapter bluetoothAdapter = ((BluetoothManager) getSystemService
                 (Context.BLUETOOTH_SERVICE)).getAdapter();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
@@ -139,8 +136,8 @@ public class MainActivity extends Activity {
             GattServices.CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID,
             new CharacteristicChangeListener() {
                 @Override
-                public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic) {
-                    playDefaultNotificationSound();
+                public void onCharacteristicChanged(final BluetoothGattCharacteristic characteristic) {
+                    L.e("Rotated cube to " + characteristic.getValue()[0]);
                     int orientation = characteristic.getValue()[0];
                     final int UP = 0;
                     final int DOWN = 1;
@@ -148,7 +145,7 @@ public class MainActivity extends Activity {
                     final int RIGHT = 3;
                     final int FRONT = 4;
                     final int BACK = 5;
-                    switch(orientation) {
+                    switch (orientation) {
                         case UP: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_UP); break;
                         case DOWN: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_DOWN); break;
                         case LEFT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_LEFT); break;
@@ -157,18 +154,8 @@ public class MainActivity extends Activity {
                         case BACK: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK); break;
                     }
                 }
-
-                private void playDefaultNotificationSound() {
-                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                    RingtoneManager.getRingtone(Injector.getApplicationContext(), notification).play();
-                }
             }
         ));
-    }
-
-    @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
-    public void updateTV(String _, Object toDisplay) {
-        mClosestPuck.setText(String.valueOf(toDisplay));
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE)
@@ -188,6 +175,16 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton(getString(R.string.abort), null);
         builder.create().show();
+    }
+
+    @ReceiveEvents(name = Trigger.TRIGGER_CLOSEST_PUCK_CHANGED)
+    public void closestPuckChanged(String _, Puck closestPuck) {
+        mPuckAdapter.closestPuckChanged(closestPuck);
+    }
+
+    @ReceiveEvents(name = Trigger.TRIGGER_CONNECTION_STATE_CHANGED)
+    public void connectionStateChanged(String _, GattManager.ConnectionStateChangedBundle connectionStateChangedBundle) {
+        mPuckAdapter.connectionStateChanged(connectionStateChangedBundle);
     }
 
     boolean currentlyAddingZone = false;
@@ -309,31 +306,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void selectDeviceDialog() {
-        final List<Puck> puckList = mPuckManager.getAll();
-        if (puckList.size() == 0) {
-            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String[] names = new String[puckList.size()];
-        for (int i=0; i< puckList.size(); i++) {
-            names[i] = puckList.get(i).getName();
-        }
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.select_puck))
-                .setItems(names, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Rule rule = new Rule();
-                        rule.setPuck(puckList.get(which));
-                        selectTriggerDialog(rule);
-                    }
-                })
-                .setNegativeButton(getString(R.string.abort), null);
-
-        builder.create().show();
+    @ReceiveEvents(name = Trigger.TRIGGER_ADD_RULE_FOR_EXISTING_PUCK)
+    public void addRuleForExistingPuck(String _, Object puck) {
+        Rule rule = new Rule();
+        rule.setPuck((Puck) puck);
+        selectTriggerDialog(rule);
     }
 
     public void selectTriggerDialog(final Rule rule) {
@@ -407,13 +384,6 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         switch (id) {
-            case R.id.action_settings:
-                return true;
-
-            case R.id.action_add_rule:
-                selectDeviceDialog();
-                return true;
-
             case R.id.action_trigger:
                 final ArrayList<Puck> pucks = mPuckManager.getAll();
                 if(pucks.size() > 0) {

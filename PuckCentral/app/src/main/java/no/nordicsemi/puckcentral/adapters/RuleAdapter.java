@@ -4,89 +4,43 @@ import android.content.Context;
 import android.database.Cursor;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
-import org.droidparts.annotation.inject.InjectDependency;
-import org.droidparts.bus.EventBus;
 import org.droidparts.persist.sql.stmt.Select;
-
-import java.util.ArrayList;
 
 import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.db.RuleManager;
 import no.nordicsemi.puckcentral.models.Action;
 import no.nordicsemi.puckcentral.models.Rule;
-import no.nordicsemi.puckcentral.triggers.Trigger;
 
 public class RuleAdapter extends EntityCursorAdapter<Rule> {
 
-    private final Context mCtx;
-
     public RuleAdapter(Context ctx, Select<Rule> select) {
         super(ctx, new RuleManager(ctx), select);
-        this.mCtx = ctx;
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        View view =  getLayoutInflater().inflate(R.layout.rule_list_item, null);
-        RuleViewHolder ruleViewHolder = new RuleViewHolder(view);
-        view.setTag(ruleViewHolder);
+        View view =  getLayoutInflater().inflate(R.layout.trigger_list_item, null);
+        TriggerViewHolder holder = new TriggerViewHolder(view);
+        view.setTag(holder);
         return view;
     }
 
     @Override
-    public void bindView(final Context context, View view, final Rule rule) {
+    public void bindView(Context context, View view, Rule rule) {
         entityManager.fillForeignKeys(rule);
 
-        RuleViewHolder holder = (RuleViewHolder) view.getTag();
+        TriggerViewHolder holder = (TriggerViewHolder) view.getTag();
+        holder.mTvTriggerName.setText(rule.getTrigger());
 
-        holder.mTvPuckName.setText(rule.getPuck().getName());
-        holder.mTvTrigger.setText(rule.getTrigger());
-
-        ArrayList<Action> actions = rule.getActions();
-        holder.lvActuatorList.removeAllViews();
-
-        for (Action action : actions) {
-            View listItem = getLayoutInflater().inflate(android.R.layout.simple_list_item_2, null);
-            ((TextView) listItem.findViewById(android.R.id.text1)).setText(action.describeActuator());
-            ((TextView) listItem.findViewById(android.R.id.text2)).setText(action.describeArguments());
-            holder.lvActuatorList.addView(listItem);
+        StringBuilder sb = new StringBuilder();
+        for (Action action : rule.getActions()) {
+            sb.append("- ");
+            sb.append(action.describeArguments());
+            sb.append("\n");
         }
 
-        view.findViewById(R.id.ibAddActuatorToExistingRule)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        EventBus.postEvent(Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE,
-                                rule);
-                    }
-                });
-
-        view.findViewById(R.id.ibDeleteExistingRule)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        EventBus.postEvent(Trigger.TRIGGER_REMOVE_RULE, rule);
-                    }
-                });
-    }
-
-    public boolean delete(Rule rule) {
-        boolean success = entityManager.delete(rule.id);
-        if (success) {
-            requeryData();
-        }
-        return success;
-    }
-
-    public boolean createOrUpdate(Rule rule) {
-        boolean success = entityManager.createOrUpdate(rule);
-        if (success) {
-            requeryData();
-        }
-        return success;
-
+        holder.mTvTriggerActions.setText(sb.toString());
     }
 }

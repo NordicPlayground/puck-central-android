@@ -3,19 +3,6 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/no_known_pucks_nearby"
-        android:textStyle="italic"
-        android:id="@+id/tvClosestPuck"
-        android:layout_gravity="center"
-        android:layout_margin="10dp"
-        android:gravity="center_vertical|center_horizontal"
-        android:maxLines="2"
-        android:minLines="2"/>
-
     <ListView
         android:divider="@null"
         android:dividerHeight="12dp"

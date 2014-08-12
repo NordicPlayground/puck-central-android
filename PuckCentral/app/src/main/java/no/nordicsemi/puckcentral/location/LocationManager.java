@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.db.PuckManager;
 import no.nordicsemi.puckcentral.models.Puck;
 import no.nordicsemi.puckcentral.triggers.Trigger;
@@ -100,11 +99,11 @@ public class LocationManager {
     }
 
     private void leaveCurrentZone() {
-        updateClosestPuckGUI(mCtx.getString(R.string.no_known_pucks_nearby));
         if (mClosestPuck == null) {
             return;
         }
 
+        broadcastNewClosestPuck(null);
         Trigger.trigger(
                 mClosestPuck,
                 Trigger.TRIGGER_LEAVE_ZONE);
@@ -113,7 +112,8 @@ public class LocationManager {
 
     private void enterNewZone(Puck newClosestPuck) {
         mClosestPuck = newClosestPuck;
-        updateClosestPuckGUI(mCtx.getString(R.string.currently_near_puck, mClosestPuck.getName()));
+
+        broadcastNewClosestPuck(mClosestPuck);
         Trigger.trigger(
                 mClosestPuck,
                 Trigger.TRIGGER_ENTER_ZONE);
@@ -123,7 +123,7 @@ public class LocationManager {
         return mClosestPuck;
     }
 
-    public void updateClosestPuckGUI(String text) {
-        EventBus.postEvent(Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV, text);
+    public void broadcastNewClosestPuck(Puck puck) {
+        EventBus.postEvent(Trigger.TRIGGER_CLOSEST_PUCK_CHANGED, puck);
     }
 }

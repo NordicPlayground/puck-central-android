@@ -21,6 +21,9 @@ public class PuckViewHolder extends ViewHolder {
     @InjectView(id = R.id.btnDeletePuck)
     public Button mBtnDeletePuck;
 
+    @InjectView(id = R.id.btnAddRuleToPuck)
+    public Button mBtnAddRuleToPuck;
+
     public PuckViewHolder(View view) {
         super(view);
     }
