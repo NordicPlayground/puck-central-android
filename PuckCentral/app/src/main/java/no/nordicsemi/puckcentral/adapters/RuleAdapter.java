@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
+import org.droidparts.annotation.inject.InjectDependency;
 import org.droidparts.bus.EventBus;
 import org.droidparts.persist.sql.stmt.Select;
 

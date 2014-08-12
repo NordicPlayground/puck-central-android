@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp" >
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/layer_card_background"
+        android:paddingTop="@dimen/card_listview_horizontal_padding">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/hello_world"
+            android:id="@+id/tvPuckName"
+            android:paddingLeft="@dimen/card_listview_horizontal_padding"
+            android:paddingRight="@dimen/card_listview_horizontal_padding" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/llTriggerList"
+            android:paddingLeft="@dimen/card_listview_horizontal_padding"
+            android:paddingRight="@dimen/card_listview_horizontal_padding" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/lighter_gray"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/puck_delete"
+            android:background="@null"
+            android:textColor="@android:color/holo_blue_dark"
+            android:id="@+id/btnDeletePuck"
+            android:gravity="center_vertical"
+            android:paddingLeft="@dimen/card_listview_horizontal_padding"
+            android:paddingRight="@dimen/card_listview_horizontal_padding"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </LinearLayout>
+</FrameLayout>

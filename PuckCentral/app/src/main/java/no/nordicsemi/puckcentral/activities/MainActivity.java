@@ -33,6 +33,7 @@ import org.droidparts.concurrent.task.AsyncTaskResultListener;
 import org.droidparts.concurrent.task.SimpleAsyncTask;
 import org.droidparts.util.L;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +42,7 @@ import java.util.UUID;
 
 import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.actuators.Actuator;
-import no.nordicsemi.puckcentral.adapters.RuleAdapter;
+import no.nordicsemi.puckcentral.adapters.PuckAdapter;
 import no.nordicsemi.puckcentral.bluetooth.gatt.CharacteristicChangeListener;
 import no.nordicsemi.puckcentral.bluetooth.gatt.GattManager;
 import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattSetNotificationOperation;
@@ -57,8 +58,8 @@ import no.nordicsemi.puckcentral.triggers.Trigger;
 
 public class MainActivity extends Activity {
 
-    @InjectView(id = R.id.lvRules)
-    ListView mLvRules;
+    @InjectView(id = R.id.lvPucks)
+    ListView mLvPucks;
 
     @InjectView(id = R.id.tvClosestPuck)
     TextView mClosestPuck;
@@ -75,7 +76,7 @@ public class MainActivity extends Activity {
     @InjectDependency
     private GattManager mGattManager;
 
-    private RuleAdapter mRuleAdapter;
+    private PuckAdapter mPuckAdapter;
 
     @Override
     public void onPreInject() {
@@ -87,8 +88,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mRuleAdapter = new RuleAdapter(this, mRuleManager.select());
-        mLvRules.setAdapter(mRuleAdapter);
+        mPuckAdapter = new PuckAdapter(this, (new PuckManager(this)).select());
+        mLvPucks.addHeaderView(new View(this));
+        mLvPucks.addFooterView(new View(this));
+        mLvPucks.setAdapter(mPuckAdapter);
 
         bindBluetoothListeners();
     }
@@ -181,7 +184,7 @@ public class MainActivity extends Activity {
                 .setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mRuleAdapter.delete((Rule) rule);
+                        //TODO FIX: mRuleAdapter.delete((Rule) rule);
                     }
                 })
                 .setNegativeButton(getString(R.string.abort), null);
@@ -207,7 +210,7 @@ public class MainActivity extends Activity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         Puck puck = puckList.get(i);
                         mRuleManager.deteRulesWithPuckId(puck.id);
-                        mRuleAdapter.requeryData();
+                        //TODO FIX: mRuleAdapter.requeryData();
                         mPuckManager.delete(puck.id);
                     }
                 })
@@ -251,7 +254,7 @@ public class MainActivity extends Activity {
                         String locationPuckName = ((TextView) view.findViewById(R.id
                                 .etLocationPuckName)).getText().toString();
                         newPuck.setName(locationPuckName);
-                        mPuckManager.create(newPuck);
+                        mPuckAdapter.create(newPuck);
 
                         new FetchPuckServices(MainActivity.this, null, newPuck).execute();
                     }
@@ -402,7 +405,11 @@ public class MainActivity extends Activity {
                                             @Override
                                             public void onActuatorDialogFinish(Action action, Rule rule) {
                                                 mActionManager.create(action);
-                                                mRuleAdapter.createOrUpdate(rule);
+                                                mRuleManager.createOrExtendExisting(rule);
+                                                // This looks at the primary key of the rule entry. Therefore, if we start
+                                                // the process with a new Rule object, even if the trigger and puck match,
+                                                // they won't extend the rule we actually want to extend.
+                                                mPuckAdapter.requeryData();
                                             }
                                         });
 
