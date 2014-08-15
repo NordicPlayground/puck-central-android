@@ -16,14 +16,24 @@ import no.nordicsemi.puckcentral.models.Rule;
 public class RingerActuator extends Actuator {
 
     public static final String MODE = "mode";
-    public static final String[] RINGER_MODES = new String[] { "Silent", "Vibrate", "Volume" };
+    public static final String[] RINGER_MODES = new String[] { "silent", "vibrate only", "volume on" };
 
     @InjectSystemService
     AudioManager mAudioManager;
 
     @Override
-    public String getDescription() {
-        return "Change phone state";
+    public String describeActuator() {
+        return "Phone Volume Actuator";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Sets your phone to " + RINGER_MODES[arguments.getInt(MODE)];
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -44,7 +54,7 @@ public class RingerActuator extends Actuator {
     public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule,
                                          final ActuatorDialogFinishListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setItems(RINGER_MODES, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

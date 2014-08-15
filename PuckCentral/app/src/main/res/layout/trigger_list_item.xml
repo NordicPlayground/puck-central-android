@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/lighter_gray" />
+
+    <TextView
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Medium"
+        android:text="Trigger Name"
+        android:id="@+id/tvTriggerName"
+        android:fontFamily="sans-serif-light"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Trigger actions"
+        android:id="@+id/tvTriggerActions"
+        android:fontFamily="sans-serif-light" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rule_remove"
+        android:background="?android:attr/selectableItemBackground"
+        android:textColor="@android:color/holo_red_dark"
+        android:id="@+id/btnRemoveRuleFromPuck"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:paddingLeft="@dimen/card_listview_horizontal_padding"
+        android:paddingRight="@dimen/card_listview_horizontal_padding"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

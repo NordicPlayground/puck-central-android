@@ -44,6 +44,14 @@ public class Action extends Entity {
         this.arguments = arguments;
     }
 
+    public String describeArguments() {
+        return getActuator().describeArguments(arguments);
+    }
+
+    public String describeActuator() {
+        return getActuator().describeActuator();
+    }
+
     public static String jsonStringBuilder(Object... keyVals) {
         if (keyVals.length % 2 == 1) {
             throw new IllegalArgumentException("Arguments must be a multiple of two.");

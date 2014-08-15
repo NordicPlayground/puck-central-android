@@ -1,6 +1,7 @@
 package no.nordicsemi.puckcentral.adapters;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -9,18 +10,22 @@ import org.droidparts.annotation.inject.InjectView;
 
 import no.nordicsemi.puckcentral.R;
 
-public class RuleViewHolder extends ViewHolder {
+public class PuckViewHolder extends ViewHolder {
 
     @InjectView(id = R.id.tvPuckName)
     public TextView mTvPuckName;
 
-    @InjectView(id = R.id.tvTrigger)
-    public TextView mTvTrigger;
+    @InjectView(id = R.id.llTriggerList)
+    public LinearLayout mLlTriggerList;
 
-    @InjectView(id = R.id.lvActuatorList)
-    public LinearLayout lvActuatorList;
+    @InjectView(id = R.id.btnDeletePuck)
+    public Button mBtnDeletePuck;
 
-    public RuleViewHolder(View view) {
+    @InjectView(id = R.id.btnAddRuleToPuck)
+    public Button mBtnAddRuleToPuck;
+
+    public PuckViewHolder(View view) {
         super(view);
     }
 }
+

@@ -26,8 +26,18 @@ public class SpotifyActuator extends Actuator {
     Context mCtx;
 
     @Override
-    public String getDescription() {
-        return "Play song from spotify";
+    public String describeActuator() {
+        return "Spotify Actuator";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Plays " + arguments.getString(SPOTIFY_URI);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -54,7 +64,7 @@ public class SpotifyActuator extends Actuator {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setView(view)
-                .setTitle(getDescription())
+                .setTitle(describeActuator())
                 .setPositiveButton(activity.getString(R.string.accept), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

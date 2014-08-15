@@ -15,15 +15,25 @@ import no.nordicsemi.puckcentral.models.Rule;
 
 public class MusicVolumeActuator extends Actuator {
 
-    public static final String[] VOLUMES = new String[] {"Silent", "Maximum"};
+    public static final String[] VOLUMES = new String[] {"silent", "maximum"};
     public static final String ARGUMENT_AMOUNT = "amount";
 
     @InjectSystemService
     AudioManager mAudioManager;
 
     @Override
-    public String getDescription() {
-        return "Set music volume on phone.";
+    public String describeActuator() {
+        return "Music Volume Actuator";
+    }
+
+    @Override
+    public String describeArguments(JSONObject arguments) {
+        try {
+            return "Sets music volume level to " + arguments.get(ARGUMENT_AMOUNT);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "Invalid arguments for actuator";
+        }
     }
 
     @Override
@@ -41,7 +51,7 @@ public class MusicVolumeActuator extends Actuator {
     @Override
     public AlertDialog getActuatorDialog(Activity activity, final Action action, final Rule rule, final ActuatorDialogFinishListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(getDescription());
+        builder.setTitle(describeActuator());
         builder.setItems(VOLUMES, new DialogInterface.OnClickListener() {
 
             @Override

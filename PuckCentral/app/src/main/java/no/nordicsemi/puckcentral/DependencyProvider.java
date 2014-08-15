@@ -8,6 +8,7 @@ import org.droidparts.AbstractDependencyProvider;
 import org.droidparts.net.http.RESTClient;
 import org.droidparts.persist.sql.AbstractDBOpenHelper;
 
+import no.nordicsemi.puckcentral.bluetooth.gatt.CubeConnectionManager;
 import no.nordicsemi.puckcentral.bluetooth.gatt.GattManager;
 import no.nordicsemi.puckcentral.db.ActionManager;
 import no.nordicsemi.puckcentral.db.DBOpenHelper;
@@ -23,6 +24,7 @@ public class DependencyProvider extends AbstractDependencyProvider{
     private final LocationManager mLocationManager;
     private final Context mContext;
     private final GattManager mGattManager;
+    private final CubeConnectionManager mCubeConnectionManager;
 
     public DependencyProvider(Context ctx) {
         super(ctx);
@@ -31,6 +33,7 @@ public class DependencyProvider extends AbstractDependencyProvider{
         mRESTClient = new RESTClient(ctx);
         mLocationManager = new LocationManager();
         mGattManager = new GattManager();
+        mCubeConnectionManager = new CubeConnectionManager(ctx, mGattManager);
         mContext = ctx;
     }
 
@@ -69,5 +72,9 @@ public class DependencyProvider extends AbstractDependencyProvider{
 
     public GattManager getGattManager() {
         return mGattManager;
+    }
+
+    public CubeConnectionManager getCubeConnectionManager() {
+        return mCubeConnectionManager;
     }
 }

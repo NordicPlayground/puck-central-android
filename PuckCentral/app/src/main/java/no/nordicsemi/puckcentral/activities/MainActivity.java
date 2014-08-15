@@ -6,14 +6,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +21,6 @@ import android.widget.Toast;
 
 import com.radiusnetworks.ibeacon.IBeacon;
 
-import org.droidparts.Injector;
 import org.droidparts.activity.Activity;
 import org.droidparts.annotation.bus.ReceiveEvents;
 import org.droidparts.annotation.inject.InjectDependency;
@@ -34,17 +30,13 @@ import org.droidparts.concurrent.task.SimpleAsyncTask;
 import org.droidparts.util.L;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.actuators.Actuator;
-import no.nordicsemi.puckcentral.adapters.RuleAdapter;
-import no.nordicsemi.puckcentral.bluetooth.gatt.CharacteristicChangeListener;
+import no.nordicsemi.puckcentral.adapters.PuckAdapter;
+import no.nordicsemi.puckcentral.bluetooth.gatt.CubeConnectionManager;
 import no.nordicsemi.puckcentral.bluetooth.gatt.GattManager;
-import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattSetNotificationOperation;
 import no.nordicsemi.puckcentral.db.ActionManager;
 import no.nordicsemi.puckcentral.db.PuckManager;
 import no.nordicsemi.puckcentral.db.RuleManager;
@@ -57,11 +49,8 @@ import no.nordicsemi.puckcentral.triggers.Trigger;
 
 public class MainActivity extends Activity {
 
-    @InjectView(id = R.id.lvRules)
-    ListView mLvRules;
-
-    @InjectView(id = R.id.tvClosestPuck)
-    TextView mClosestPuck;
+    @InjectView(id = R.id.lvPucks)
+    ListView mLvPucks;
 
     @InjectDependency
     private ActionManager mActionManager;
@@ -75,7 +64,10 @@ public class MainActivity extends Activity {
     @InjectDependency
     private GattManager mGattManager;
 
-    private RuleAdapter mRuleAdapter;
+    @InjectDependency
+    private CubeConnectionManager mCubeConnectionManager;
+
+    private PuckAdapter mPuckAdapter;
 
     @Override
     public void onPreInject() {
@@ -87,86 +79,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mRuleAdapter = new RuleAdapter(this, mRuleManager.select());
-        mLvRules.setAdapter(mRuleAdapter);
-
-        bindBluetoothListeners();
-    }
-
-    public void bindBluetoothListeners() {
-        final List<Rule> rules = mRuleManager.getRulesForTriggers(
-                Trigger.TRIGGER_ROTATE_CUBE_UP,
-                Trigger.TRIGGER_ROTATE_CUBE_DOWN,
-                Trigger.TRIGGER_ROTATE_CUBE_LEFT,
-                Trigger.TRIGGER_ROTATE_CUBE_RIGHT,
-                Trigger.TRIGGER_ROTATE_CUBE_FRONT,
-                Trigger.TRIGGER_ROTATE_CUBE_BACK);
-
-        // Multiple rules may point to the same puck,
-        // no need to bind up duplicate listeners.
-        final Set<Puck> puckSet = new HashSet<>();
-        for (Rule rule : rules) {
-            puckSet.add(rule.getPuck());
-        }
-
-        new SimpleAsyncTask<Void>(this, null) {
-            @Override
-            protected Void onExecute() throws Exception {
-                for (Puck puck : puckSet) {
-                    bindBluetoothListener(puck);
-                    // Android BLE stack might have issues connecting to
-                    // multiple Gatt services right after another.
-                    // See: http://stackoverflow.com/questions/21237093/android-4-3-how-to-connect-to-multiple-bluetooth-low-energy-devices
-                    Thread.sleep(1000);
-                }
-                return null;
-            }
-        }.execute();
-    }
-
-    public void bindBluetoothListener(final Puck puck) {
-        L.e("Binding GATT callback to %s (%s)", puck.getName(), puck.getAddress());
-        BluetoothAdapter bluetoothAdapter = ((BluetoothManager) getSystemService
-                (Context.BLUETOOTH_SERVICE)).getAdapter();
-        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
-
-        mGattManager.queue(new GattSetNotificationOperation(
-            device,
-            GattServices.CUBE_SERVICE_UUID,
-            GattServices.CUBE_CHARACTERISTIC_DIRECTION_UUID,
-            GattServices.CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID,
-            new CharacteristicChangeListener() {
-                @Override
-                public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic) {
-                    playDefaultNotificationSound();
-                    int orientation = characteristic.getValue()[0];
-                    final int UP = 0;
-                    final int DOWN = 1;
-                    final int LEFT = 2;
-                    final int RIGHT = 3;
-                    final int FRONT = 4;
-                    final int BACK = 5;
-                    switch(orientation) {
-                        case UP: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_UP); break;
-                        case DOWN: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_DOWN); break;
-                        case LEFT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_LEFT); break;
-                        case RIGHT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_RIGHT); break;
-                        case FRONT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_FRONT); break;
-                        case BACK: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK); break;
-                    }
-                }
-
-                private void playDefaultNotificationSound() {
-                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                    RingtoneManager.getRingtone(Injector.getApplicationContext(), notification).play();
-                }
-            }
-        ));
-    }
-
-    @ReceiveEvents(name = Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV)
-    public void updateTV(String _, Object toDisplay) {
-        mClosestPuck.setText(String.valueOf(toDisplay));
+        mPuckAdapter = new PuckAdapter(this, (new PuckManager(this)).select());
+        mLvPucks.addHeaderView(new View(this));
+        mLvPucks.addFooterView(new View(this));
+        mLvPucks.setAdapter(mPuckAdapter);
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE)
@@ -175,45 +91,29 @@ public class MainActivity extends Activity {
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_REMOVE_RULE)
-    public void removeRule(String _, final Object rule) {
+    public void removeRule(String _, final Rule rule) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(R.string.rule_remove)
                 .setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mRuleAdapter.delete((Rule) rule);
+                        mRuleManager.delete(rule.id);
+                        mPuckAdapter.requeryData();
                     }
                 })
                 .setNegativeButton(getString(R.string.abort), null);
         builder.create().show();
     }
 
-    public void removePuck() {
-        final List<Puck> puckList = mPuckManager.getAll();
-        if (puckList.size() == 0) {
-            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
-            return;
-        }
+    @ReceiveEvents(name = Trigger.TRIGGER_CLOSEST_PUCK_CHANGED)
+    public void closestPuckChanged(String _, Puck closestPuck) {
+        mPuckAdapter.closestPuckChanged(closestPuck);
+    }
 
-        List<String> puckNames = new ArrayList<>();
-        for (Puck puck : puckList) {
-            puckNames.add(puck.getName());
-        }
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.puck_remove))
-                .setItems(puckNames.toArray(new CharSequence[puckNames.size()]), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Puck puck = puckList.get(i);
-                        mRuleManager.deteRulesWithPuckId(puck.id);
-                        mRuleAdapter.requeryData();
-                        mPuckManager.delete(puck.id);
-                    }
-                })
-                .setNegativeButton(getString(R.string.abort), null);
-
-        builder.create().show();
+    @ReceiveEvents(name = Trigger.TRIGGER_CONNECTION_STATE_CHANGED)
+    public void connectionStateChanged(String _, GattManager.ConnectionStateChangedBundle connectionStateChangedBundle) {
+        mPuckAdapter.connectionStateChanged(connectionStateChangedBundle);
+        mCubeConnectionManager.connectionStateChanged(connectionStateChangedBundle);
     }
 
     boolean currentlyAddingZone = false;
@@ -251,7 +151,7 @@ public class MainActivity extends Activity {
                         String locationPuckName = ((TextView) view.findViewById(R.id
                                 .etLocationPuckName)).getText().toString();
                         newPuck.setName(locationPuckName);
-                        mPuckManager.create(newPuck);
+                        mPuckAdapter.create(newPuck);
 
                         new FetchPuckServices(MainActivity.this, null, newPuck).execute();
                     }
@@ -335,31 +235,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void selectDeviceDialog() {
-        final List<Puck> puckList = mPuckManager.getAll();
-        if (puckList.size() == 0) {
-            Toast.makeText(this, getString(R.string.no_pucks_added), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String[] names = new String[puckList.size()];
-        for (int i=0; i< puckList.size(); i++) {
-            names[i] = puckList.get(i).getName();
-        }
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.select_puck))
-                .setItems(names, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Rule rule = new Rule();
-                        rule.setPuck(puckList.get(which));
-                        selectTriggerDialog(rule);
-                    }
-                })
-                .setNegativeButton(getString(R.string.abort), null);
-
-        builder.create().show();
+    @ReceiveEvents(name = Trigger.TRIGGER_ADD_RULE_FOR_EXISTING_PUCK)
+    public void addRuleForExistingPuck(String _, Object puck) {
+        Rule rule = new Rule();
+        rule.setPuck((Puck) puck);
+        selectTriggerDialog(rule);
     }
 
     public void selectTriggerDialog(final Rule rule) {
@@ -384,7 +264,7 @@ public class MainActivity extends Activity {
         final ArrayList<Actuator> actuators = Actuator.getActuators();
         String[] actuatorDescriptions = new String[actuators.size()];
         for (int i=0; i< actuators.size(); i++) {
-            actuatorDescriptions[i] = actuators.get(i).getDescription();
+            actuatorDescriptions[i] = actuators.get(i).describeActuator();
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
@@ -402,7 +282,11 @@ public class MainActivity extends Activity {
                                             @Override
                                             public void onActuatorDialogFinish(Action action, Rule rule) {
                                                 mActionManager.create(action);
-                                                mRuleAdapter.createOrUpdate(rule);
+                                                mRuleManager.createOrExtendExisting(rule);
+                                                // This looks at the primary key of the rule entry. Therefore, if we start
+                                                // the process with a new Rule object, even if the trigger and puck match,
+                                                // they won't extend the rule we actually want to extend.
+                                                mPuckAdapter.requeryData();
                                             }
                                         });
 
@@ -429,13 +313,6 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         switch (id) {
-            case R.id.action_settings:
-                return true;
-
-            case R.id.action_add_rule:
-                selectDeviceDialog();
-                return true;
-
             case R.id.action_trigger:
                 final ArrayList<Puck> pucks = mPuckManager.getAll();
                 if(pucks.size() > 0) {
@@ -446,10 +323,6 @@ public class MainActivity extends Activity {
                         }
                     }.start();
                 }
-                return true;
-
-            case R.id.action_remove_puck:
-                removePuck();
                 return true;
 
             default:

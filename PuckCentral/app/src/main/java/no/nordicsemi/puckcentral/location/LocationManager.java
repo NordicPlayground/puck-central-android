@@ -1,7 +1,5 @@
 package no.nordicsemi.puckcentral.location;
 
-import android.content.Context;
-
 import com.radiusnetworks.ibeacon.IBeacon;
 
 import org.droidparts.Injector;
@@ -13,7 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
-import no.nordicsemi.puckcentral.R;
+import no.nordicsemi.puckcentral.bluetooth.gatt.CubeConnectionManager;
 import no.nordicsemi.puckcentral.db.PuckManager;
 import no.nordicsemi.puckcentral.models.Puck;
 import no.nordicsemi.puckcentral.triggers.Trigger;
@@ -22,24 +20,29 @@ import no.nordicsemi.puckcentral.triggers.Trigger;
 public class LocationManager {
 
     @InjectDependency
-    Context mCtx;
+    PuckManager mPuckManager;
 
     @InjectDependency
-    PuckManager mPuckManager;
+    CubeConnectionManager mCubeManager;
 
     private Puck mClosestPuck;
     private DateTime mLastChanged;
 
     private final int THROTTLE = 3;
+    private boolean injected = false;
 
     public LocationManager() {
         mLastChanged = new DateTime();
     }
 
     public void updateLocation(Collection<IBeacon> iBeacons) {
-
         if (mLastChanged.plusSeconds(THROTTLE).isAfterNow()) {
             return;
+        }
+
+        if (!injected) {
+            Injector.inject(Injector.getApplicationContext(), this);
+            injected = true;
         }
 
         // There are few cases where there are exactly 0 iBeacons present,
@@ -56,6 +59,13 @@ public class LocationManager {
                 return a.getAccuracy() - b.getAccuracy() < 0 ? 1 : -1;
             }
         });
+
+        for (IBeacon iBeacon : iBeaconsArray) {
+            Puck puck = mPuckManager.forIBeacon(iBeacon);
+            if (puck != null) {
+                mCubeManager.checkAndConnectToPuck(puck);
+            }
+        }
 
         for (IBeacon iBeacon : iBeaconsArray) {
             if(iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
@@ -75,10 +85,6 @@ public class LocationManager {
     }
 
     private void setLocation(IBeacon iBeacon) {
-        if (mPuckManager == null) {
-            Injector.inject(Injector.getApplicationContext(), this);
-        }
-
         mLastChanged = new DateTime();
 
         if (iBeacon == null) {
@@ -100,11 +106,11 @@ public class LocationManager {
     }
 
     private void leaveCurrentZone() {
-        updateClosestPuckGUI(mCtx.getString(R.string.no_known_pucks_nearby));
         if (mClosestPuck == null) {
             return;
         }
 
+        broadcastNewClosestPuck(null);
         Trigger.trigger(
                 mClosestPuck,
                 Trigger.TRIGGER_LEAVE_ZONE);
@@ -113,7 +119,8 @@ public class LocationManager {
 
     private void enterNewZone(Puck newClosestPuck) {
         mClosestPuck = newClosestPuck;
-        updateClosestPuckGUI(mCtx.getString(R.string.currently_near_puck, mClosestPuck.getName()));
+
+        broadcastNewClosestPuck(mClosestPuck);
         Trigger.trigger(
                 mClosestPuck,
                 Trigger.TRIGGER_ENTER_ZONE);
@@ -123,7 +130,7 @@ public class LocationManager {
         return mClosestPuck;
     }
 
-    public void updateClosestPuckGUI(String text) {
-        EventBus.postEvent(Trigger.TRIGGER_UPDATE_CLOSEST_PUCK_TV, text);
+    public void broadcastNewClosestPuck(Puck puck) {
+        EventBus.postEvent(Trigger.TRIGGER_CLOSEST_PUCK_CHANGED, puck);
     }
 }
