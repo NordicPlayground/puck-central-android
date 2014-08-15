@@ -91,13 +91,14 @@ public class MainActivity extends Activity {
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_REMOVE_RULE)
-    public void removeRule(String _, final Object rule) {
+    public void removeRule(String _, final Rule rule) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle(R.string.rule_remove)
                 .setPositiveButton(getString(R.string.delete), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //TODO FIX: mRuleAdapter.delete((Rule) rule);
+                        mRuleManager.delete(rule.id);
+                        mPuckAdapter.requeryData();
                     }
                 })
                 .setNegativeButton(getString(R.string.abort), null);

@@ -6,12 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.droidparts.adapter.cursor.EntityCursorAdapter;
+import org.droidparts.bus.EventBus;
 import org.droidparts.persist.sql.stmt.Select;
 
 import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.db.RuleManager;
 import no.nordicsemi.puckcentral.models.Action;
 import no.nordicsemi.puckcentral.models.Rule;
+import no.nordicsemi.puckcentral.triggers.Trigger;
 
 public class RuleAdapter extends EntityCursorAdapter<Rule> {
 
@@ -28,7 +30,7 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
     }
 
     @Override
-    public void bindView(Context context, View view, Rule rule) {
+    public void bindView(Context context, View view, final Rule rule) {
         entityManager.fillForeignKeys(rule);
 
         TriggerViewHolder holder = (TriggerViewHolder) view.getTag();
@@ -41,6 +43,15 @@ public class RuleAdapter extends EntityCursorAdapter<Rule> {
             sb.append("\n");
         }
 
+        sb.setLength(Math.max(sb.length() -1, 0));
+
         holder.mTvTriggerActions.setText(sb.toString());
+
+        holder.mBtnRemoveRuleFromPuck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EventBus.postEvent(Trigger.TRIGGER_REMOVE_RULE, rule);
+            }
+        });
     }
 }
