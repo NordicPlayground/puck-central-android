@@ -6,14 +6,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +21,6 @@ import android.widget.Toast;
 
 import com.radiusnetworks.ibeacon.IBeacon;
 
-import org.droidparts.Injector;
 import org.droidparts.activity.Activity;
 import org.droidparts.annotation.bus.ReceiveEvents;
 import org.droidparts.annotation.inject.InjectDependency;
@@ -34,17 +30,13 @@ import org.droidparts.concurrent.task.SimpleAsyncTask;
 import org.droidparts.util.L;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import no.nordicsemi.puckcentral.R;
 import no.nordicsemi.puckcentral.actuators.Actuator;
 import no.nordicsemi.puckcentral.adapters.PuckAdapter;
-import no.nordicsemi.puckcentral.bluetooth.gatt.CharacteristicChangeListener;
+import no.nordicsemi.puckcentral.bluetooth.gatt.CubeConnectionManager;
 import no.nordicsemi.puckcentral.bluetooth.gatt.GattManager;
-import no.nordicsemi.puckcentral.bluetooth.gatt.operations.GattSetNotificationOperation;
 import no.nordicsemi.puckcentral.db.ActionManager;
 import no.nordicsemi.puckcentral.db.PuckManager;
 import no.nordicsemi.puckcentral.db.RuleManager;
@@ -72,6 +64,9 @@ public class MainActivity extends Activity {
     @InjectDependency
     private GattManager mGattManager;
 
+    @InjectDependency
+    private CubeConnectionManager mCubeConnectionManager;
+
     private PuckAdapter mPuckAdapter;
 
     @Override
@@ -88,74 +83,6 @@ public class MainActivity extends Activity {
         mLvPucks.addHeaderView(new View(this));
         mLvPucks.addFooterView(new View(this));
         mLvPucks.setAdapter(mPuckAdapter);
-
-        bindBluetoothListeners();
-    }
-
-    public void bindBluetoothListeners() {
-        final List<Rule> rules = mRuleManager.getRulesForTriggers(
-                Trigger.TRIGGER_ROTATE_CUBE_UP,
-                Trigger.TRIGGER_ROTATE_CUBE_DOWN,
-                Trigger.TRIGGER_ROTATE_CUBE_LEFT,
-                Trigger.TRIGGER_ROTATE_CUBE_RIGHT,
-                Trigger.TRIGGER_ROTATE_CUBE_FRONT,
-                Trigger.TRIGGER_ROTATE_CUBE_BACK);
-
-        // Multiple rules may point to the same puck,
-        // no need to bind up duplicate listeners.
-        final Set<Puck> puckSet = new HashSet<>();
-        for (Rule rule : rules) {
-            puckSet.add(rule.getPuck());
-        }
-
-        new SimpleAsyncTask<Void>(this, null) {
-            @Override
-            protected Void onExecute() throws Exception {
-                for (Puck puck : puckSet) {
-                    bindBluetoothListener(puck);
-                    // Android BLE stack might have issues connecting to
-                    // multiple Gatt services right after another.
-                    // See: http://stackoverflow.com/questions/21237093/android-4-3-how-to-connect-to-multiple-bluetooth-low-energy-devices
-                    Thread.sleep(1000);
-                }
-                return null;
-            }
-        }.execute();
-    }
-
-    public void bindBluetoothListener(final Puck puck) {
-        L.i("Binding GATT callback to %s (%s)", puck.getName(), puck.getAddress());
-        BluetoothAdapter bluetoothAdapter = ((BluetoothManager) getSystemService
-                (Context.BLUETOOTH_SERVICE)).getAdapter();
-        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(puck.getAddress());
-
-        mGattManager.queue(new GattSetNotificationOperation(
-            device,
-            GattServices.CUBE_SERVICE_UUID,
-            GattServices.CUBE_CHARACTERISTIC_DIRECTION_UUID,
-            GattServices.CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID,
-            new CharacteristicChangeListener() {
-                @Override
-                public void onCharacteristicChanged(final BluetoothGattCharacteristic characteristic) {
-                    L.e("Rotated cube to " + characteristic.getValue()[0]);
-                    int orientation = characteristic.getValue()[0];
-                    final int UP = 0;
-                    final int DOWN = 1;
-                    final int LEFT = 2;
-                    final int RIGHT = 3;
-                    final int FRONT = 4;
-                    final int BACK = 5;
-                    switch (orientation) {
-                        case UP: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_UP); break;
-                        case DOWN: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_DOWN); break;
-                        case LEFT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_LEFT); break;
-                        case RIGHT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_RIGHT); break;
-                        case FRONT: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_FRONT); break;
-                        case BACK: Trigger.trigger(puck, Trigger.TRIGGER_ROTATE_CUBE_BACK); break;
-                    }
-                }
-            }
-        ));
     }
 
     @ReceiveEvents(name = Trigger.TRIGGER_ADD_ACTUATOR_FOR_EXISTING_RULE)
@@ -185,6 +112,7 @@ public class MainActivity extends Activity {
     @ReceiveEvents(name = Trigger.TRIGGER_CONNECTION_STATE_CHANGED)
     public void connectionStateChanged(String _, GattManager.ConnectionStateChangedBundle connectionStateChangedBundle) {
         mPuckAdapter.connectionStateChanged(connectionStateChangedBundle);
+        mCubeConnectionManager.connectionStateChanged(connectionStateChangedBundle);
     }
 
     boolean currentlyAddingZone = false;

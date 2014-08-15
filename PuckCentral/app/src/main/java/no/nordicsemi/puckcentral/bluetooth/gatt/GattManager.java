@@ -114,7 +114,7 @@ public class GattManager {
                                     device.getAddress(),
                                     newState));
 
-                    if(status == 133) {
+                    if (status == 133) {
                         L.e("Got the status 133 bug, closing gatt");
                         gatt.close();
                         mGatts.remove(device.getAddress());
@@ -164,6 +164,7 @@ public class GattManager {
                     execute(gatt, operation);
                 }
 
+
                 @Override
                 public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     super.onCharacteristicWrite(gatt, characteristic, status);
@@ -175,10 +176,10 @@ public class GattManager {
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                     super.onCharacteristicChanged(gatt, characteristic);
-                    L.i("Characteristic " + characteristic.getUuid() + "was changed, device: " + device.getAddress());
-                    if(mCharacteristicChangeListeners.containsKey(characteristic.getUuid())) {
+                    L.e("Characteristic " + characteristic.getUuid() + "was changed, device: " + device.getAddress());
+                    if (mCharacteristicChangeListeners.containsKey(characteristic.getUuid())) {
                         for (CharacteristicChangeListener listener : mCharacteristicChangeListeners.get(characteristic.getUuid())) {
-                            listener.onCharacteristicChanged(characteristic);
+                            listener.onCharacteristicChanged(device.getAddress(), characteristic);
                         }
                     }
                 }

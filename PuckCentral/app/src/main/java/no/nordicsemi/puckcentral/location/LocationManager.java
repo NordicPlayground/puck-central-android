@@ -1,7 +1,5 @@
 package no.nordicsemi.puckcentral.location;
 
-import android.content.Context;
-
 import com.radiusnetworks.ibeacon.IBeacon;
 
 import org.droidparts.Injector;
@@ -13,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
+import no.nordicsemi.puckcentral.bluetooth.gatt.CubeConnectionManager;
 import no.nordicsemi.puckcentral.db.PuckManager;
 import no.nordicsemi.puckcentral.models.Puck;
 import no.nordicsemi.puckcentral.triggers.Trigger;
@@ -21,24 +20,29 @@ import no.nordicsemi.puckcentral.triggers.Trigger;
 public class LocationManager {
 
     @InjectDependency
-    Context mCtx;
+    PuckManager mPuckManager;
 
     @InjectDependency
-    PuckManager mPuckManager;
+    CubeConnectionManager mCubeManager;
 
     private Puck mClosestPuck;
     private DateTime mLastChanged;
 
     private final int THROTTLE = 3;
+    private boolean injected = false;
 
     public LocationManager() {
         mLastChanged = new DateTime();
     }
 
     public void updateLocation(Collection<IBeacon> iBeacons) {
-
         if (mLastChanged.plusSeconds(THROTTLE).isAfterNow()) {
             return;
+        }
+
+        if (!injected) {
+            Injector.inject(Injector.getApplicationContext(), this);
+            injected = true;
         }
 
         // There are few cases where there are exactly 0 iBeacons present,
@@ -55,6 +59,13 @@ public class LocationManager {
                 return a.getAccuracy() - b.getAccuracy() < 0 ? 1 : -1;
             }
         });
+
+        for (IBeacon iBeacon : iBeaconsArray) {
+            Puck puck = mPuckManager.forIBeacon(iBeacon);
+            if (puck != null) {
+                mCubeManager.checkAndConnectToPuck(puck);
+            }
+        }
 
         for (IBeacon iBeacon : iBeaconsArray) {
             if(iBeacon.getProximity() == IBeacon.PROXIMITY_IMMEDIATE) {
@@ -74,10 +85,6 @@ public class LocationManager {
     }
 
     private void setLocation(IBeacon iBeacon) {
-        if (mPuckManager == null) {
-            Injector.inject(Injector.getApplicationContext(), this);
-        }
-
         mLastChanged = new DateTime();
 
         if (iBeacon == null) {

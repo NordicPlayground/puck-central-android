@@ -10,7 +10,6 @@ import org.droidparts.annotation.inject.InjectDependency;
 
 import java.util.UUID;
 
-import no.nordicsemi.puckcentral.bluetooth.gatt.CharacteristicChangeListener;
 import no.nordicsemi.puckcentral.bluetooth.gatt.GattManager;
 
 public class GattSetNotificationOperation extends GattOperation {
@@ -21,15 +20,13 @@ public class GattSetNotificationOperation extends GattOperation {
     private final UUID mServiceUuid;
     private final UUID mCharacteristicUuid;
     private final UUID mDescriptorUuid;
-    private CharacteristicChangeListener mCharacteristicChangeListener;
 
-    public GattSetNotificationOperation(BluetoothDevice device, UUID serviceUuid, UUID characteristicUuid, UUID descriptorUuid, CharacteristicChangeListener characteristicChangeListener) {
+    public GattSetNotificationOperation(BluetoothDevice device, UUID serviceUuid, UUID characteristicUuid, UUID descriptorUuid) {
         super(device);
         Injector.inject(Injector.getApplicationContext(), this);
         mServiceUuid = serviceUuid;
         mCharacteristicUuid = characteristicUuid;
         mDescriptorUuid = descriptorUuid;
-        mCharacteristicChangeListener = characteristicChangeListener;
     }
 
     @Override
@@ -45,7 +42,6 @@ public class GattSetNotificationOperation extends GattOperation {
         BluetoothGattDescriptor descriptor = characteristic.getDescriptor(mDescriptorUuid);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         gatt.writeDescriptor(descriptor);
-        mGattManager.addCharacteristicChangeListener(mCharacteristicUuid, mCharacteristicChangeListener);
     }
 
     @Override
