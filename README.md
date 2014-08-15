@@ -8,7 +8,14 @@ Puck Central is the name of the Android app.
 
 Puck Central comes bundled with a number of actuators (located in no.nordicsemi.actuators), amongst others the Puck, Spotify, Http, and IR actuators.
 
-Creating your own actuator is straigtforward. 
+Creating your own actuator is straigtforward. Subclass the Actuator class, and implement the required methods. Look at the existing actuators, such as HttpActuator and RingerActuator for examples on how to wire everything together.
+
+### Creating your own puck actuator.
+
+Puck actuators actuate on pucks, for example sending an IR signal, or displaying something on a remote screen.
+Simply subclass PuckActuator, and implement the requred methods. Look at the DisplayActuator and IRActuator for good examples at how to get going.
+
+For Puck Central to recognize your new Puck, you have to register it in GattServices. You should create an entry there for the Gatt service and characteristics your device offers, as well as create any triggers they might support (Put the triggers in the Trigger class).
 
 ## A note on the android bluetooth stack
 
@@ -21,6 +28,10 @@ Contributions are gladly accepted, as the GattManager mainly contains the featur
 ### GattManager usage
 
 Usage is straigthforward. Instantiate a new gatt operation bundle, add add any needed gatt operations to it. Gatt operations are contained inside wrapper classes (GattCharacteristic[Operation]Operation) to allow queueing inside the GattManager. Finally, queue the bundle in the GattManager, and it will ensure correct execution.
+
+### Issues with Cube Puck dropping connections
+
+Cube Pucks may suddenly disconnect and reconnect in the current implementation. After much testing i believe the problem lies within the Android BLE stack. Improvements to the Cube Puck connection code is welcome. It is found in the CubeConnectionManager within the bluetooth folder.
 
 ```
 GattOperationBundle bundle = new GattOperationBundle();
